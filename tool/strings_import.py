@@ -1,0 +1,16 @@
+S = {
+ "importPickPlate": ("Qual placa você quer importar?", "Which plate do you want to import?"),
+ "plateLabel": ("Placa {index}", "Plate {index}", {"index": "int"}),
+ "importSummaryTitle": ("Dados encontrados no arquivo", "Data found in the file"),
+ "importTime": ("Tempo de impressão: {time}", "Print time: {time}", {"time": "String"}),
+ "importFilamentLine": ("{name}: {weight}", "{name}: {weight}", {"name": "String", "weight": "String"}),
+ "importMissingTime": ("O arquivo não informa o tempo de impressão. Preencha manualmente.", "The file has no print time. Fill it in manually."),
+ "importOnlyTotalWeight": ("O arquivo só traz o peso total ({weight}), sem separar por filamento. Ele entrou como um filamento só; ajuste se precisar.", "The file only has the total weight ({weight}), not per filament. It was added as one filament; adjust if needed.", {"weight": "String"}),
+ "importMissingWeight": ("O arquivo não informa o peso do filamento. Preencha manualmente.", "The file has no filament weight. Fill it in manually."),
+ "importUnmatched": ("Alguns filamentos do arquivo não têm cadastro do mesmo tipo. Escolha o filamento certo na calculadora.", "Some filaments in the file have no registered match of the same type. Pick them in the calculator."),
+ "importErrNotA3mf": ("Esse arquivo não é um .3mf válido.", "This is not a valid .3mf file."),
+ "importErrNoSliceInfo": ("Esse .3mf não tem dados de fatiamento (peso e tempo). No Bambu Studio, fatie a placa e salve o projeto, ou use \"Exportar arquivo fatiado da placa\". Você também pode preencher os campos à mão.", "This .3mf has no slicing data (weight and time). In Bambu Studio, slice the plate and save the project, or use \"Export plate sliced file\". You can also fill the fields by hand."),
+ "importErrNoPlates": ("O arquivo abriu, mas nenhuma placa tem peso ou tempo. Fatie de novo e salve, ou preencha à mão.", "The file opened, but no plate has weight or time. Slice again and save, or fill in by hand."),
+ "importErrWrongExtension": ("Escolha um arquivo .3mf (projeto do Bambu Studio ou .gcode.3mf).", "Pick a .3mf file (Bambu Studio project or .gcode.3mf)."),
+ "importApply": ("Usar estes dados", "Use this data"),
+}

@@ -1,0 +1,492 @@
+{
+  "@@locale": "pt",
+  "appTitle": "PrintCost",
+  "navCalculator": "Calculadora",
+  "navHistory": "Histórico",
+  "navDashboard": "Painel",
+  "navMore": "Mais",
+  "filaments": "Filamentos",
+  "printers": "Impressoras",
+  "settings": "Configurações",
+  "backup": "Backup",
+  "save": "Salvar",
+  "cancel": "Cancelar",
+  "delete": "Excluir",
+  "edit": "Editar",
+  "add": "Adicionar",
+  "close": "Fechar",
+  "ok": "OK",
+  "back": "Voltar",
+  "next": "Próximo",
+  "archive": "Arquivar",
+  "help": "Ajuda",
+  "optional": "opcional",
+  "requiredField": "Preencha este campo",
+  "invalidNumber": "Número inválido. Ex.: 12,50",
+  "mustBePositive": "Precisa ser maior que zero",
+  "unexpectedError": "Algo deu errado: {error}",
+  "@unexpectedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newFilament": "Novo filamento",
+  "editFilament": "Editar filamento",
+  "noFilaments": "Nenhum filamento cadastrado. Toque em + para cadastrar o primeiro rolo.",
+  "filamentBrand": "Marca",
+  "filamentMaterial": "Tipo",
+  "filamentColor": "Cor",
+  "filamentRollPrice": "Preço do rolo",
+  "filamentRollWeight": "Peso do rolo (g)",
+  "filamentStock": "Estoque restante (g)",
+  "filamentLowStock": "Avisar quando restar (g)",
+  "helpBrand": "Fabricante do filamento. Ex.: Bambu, Voolt, 3D Fila, eSun.",
+  "helpMaterial": "Tipo do plástico: PLA, PETG, ABS, TPU... Só para você se organizar.",
+  "helpColor": "Nome da cor e, se quiser, a cor da bolinha para achar rápido na lista.",
+  "helpRollPrice": "Quanto você pagou no rolo. Pode incluir o frete dividido.",
+  "helpRollWeight": "Peso do filamento no rolo, sem o carretel. Quase sempre 1000 g.",
+  "helpStock": "Quanto ainda tem no rolo. Rolo novo: igual ao peso do rolo. O app desconta sozinho quando você marca uma peça como impressa.",
+  "helpLowStock": "Você recebe um aviso quando o estoque chegar nesse valor.",
+  "lowStockBadge": "Acabando",
+  "stockLeft": "{grams} restantes",
+  "@stockLeft": {
+    "placeholders": {
+      "grams": {
+        "type": "String"
+      }
+    }
+  },
+  "pricePerKg": "{price}/kg",
+  "@pricePerKg": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "archiveFilamentConfirm": "Arquivar este filamento? Ele some da lista, mas o histórico continua igual.",
+  "pickColor": "Escolher cor",
+  "noColor": "Sem cor",
+  "newPrinter": "Nova impressora",
+  "editPrinter": "Editar impressora",
+  "noPrinters": "Nenhuma impressora cadastrada. Toque em + para cadastrar.",
+  "printerName": "Nome",
+  "printerPower": "Consumo médio (W)",
+  "printerValue": "Valor da máquina",
+  "printerLifespan": "Vida útil estimada (horas)",
+  "printerMaintenance": "Manutenção por hora (opcional)",
+  "helpPrinterName": "Um nome para reconhecer a impressora. Ex.: A1 da sala.",
+  "helpPower": "Consumo médio enquanto imprime. Valores aproximados em PLA: A1 mini ~ 80 W, A1 ~ 95 W, P1S ~ 110 W, X1C ~ 140 W. Se tiver uma tomada medidora, use o valor medido.",
+  "helpMachineValue": "Quanto você pagou na impressora. Serve para calcular o desgaste.",
+  "helpLifespan": "Quantas horas de impressão você espera que ela dure. 5000 h é um chute razoável.",
+  "helpMaintenance": "Gasto médio com bicos, correias, graxa... por hora de impressão. Pode deixar 0.",
+  "wearPerHour": "{value}/h de desgaste",
+  "@wearPerHour": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "archivePrinterConfirm": "Arquivar esta impressora? O histórico continua igual.",
+  "sectionCosts": "Custos",
+  "sectionPricing": "Preço",
+  "sectionAppearance": "Aparência e idioma",
+  "sectionShop": "Sua loja (aparece no PDF)",
+  "sectionModules": "Recursos extras",
+  "settingsKwh": "Preço do kWh",
+  "settingsLaborHour": "Valor da sua hora de trabalho",
+  "settingsMarketplace": "Taxa do marketplace (%)",
+  "settingsTax": "Impostos (%)",
+  "settingsMargin": "Margem de lucro padrão (%)",
+  "settingsPackaging": "Embalagem por peça",
+  "settingsWaste": "Desperdício/purga padrão (%)",
+  "settingsFailure": "Taxa de falha padrão (%)",
+  "settingsRounding": "Arredondamento do preço",
+  "settingsCurrency": "Moeda",
+  "settingsLanguage": "Idioma",
+  "languageSystem": "Do aparelho",
+  "settingsTheme": "Tema",
+  "themeSystem": "Automático",
+  "themeLight": "Claro",
+  "themeDark": "Escuro",
+  "shopName": "Nome da loja",
+  "shopContact": "Contato (WhatsApp, Instagram...)",
+  "shopLogo": "Logo",
+  "chooseLogo": "Escolher logo",
+  "removeLogo": "Remover logo",
+  "printerModuleTitle": "Acompanhar impressora na rede (beta)",
+  "printerModuleSubtitle": "Mostra o andamento da impressão de uma impressora na mesma rede Wi-Fi. Desligado por padrão.",
+  "settingsSaved": "Configurações salvas",
+  "helpKwh": "Valor da conta de luz dividido pelos kWh consumidos (está na fatura). Use 4 casas se quiser, ex.: 0,8950.",
+  "helpLabor": "Quanto vale uma hora do seu trabalho manual (tirar suporte, lixar, pintar, embalar).",
+  "helpPackaging": "Caixa, saquinho, etiqueta, brinde... por peça vendida.",
+  "helpMarketplace": "Comissão da plataforma de venda (Shopee, Mercado Livre, Elo7...). Use 0 se você vende direto.",
+  "helpTax": "Impostos sobre a venda (ex.: Simples Nacional). Use 0 se não se aplica.",
+  "helpMargin": "Quanto do preço final fica com você como lucro, depois de pagar custos, taxas e impostos. 30% é um bom começo.",
+  "helpWaste": "Filamento perdido em purga (troca de cor no AMS), testes e sobras. 5% para uma cor; com muitas cores, use mais.",
+  "helpFailure": "Reserva para impressões que dão errado. Se 1 em cada 20 falha, use 5%.",
+  "helpRounding": "Arredonda o preço sempre para cima, para ficar com cara de preço de loja.",
+  "helpCurrency": "Moeda usada para mostrar os valores. Não converte valores já cadastrados.",
+  "roundingNone": "Sem arredondar",
+  "rounding90": "Terminar em ,90",
+  "rounding99": "Terminar em ,99",
+  "roundingHalf": "Múltiplo de 0,50",
+  "roundingWhole": "Valor inteiro",
+  "calcFilamentsSection": "Filamento usado",
+  "calcAddFilament": "Adicionar outro filamento",
+  "calcSelectFilament": "Filamento",
+  "calcGrams": "Gramas",
+  "calcPrinterSection": "Impressão",
+  "calcPrinter": "Impressora",
+  "calcNoPrinter": "Sem impressora (ignora energia e desgaste)",
+  "calcHours": "Horas",
+  "calcMinutes": "Minutos",
+  "calcPostProcess": "Pós-processamento (min)",
+  "calcPercentsSection": "Margem e reservas",
+  "calcWaste": "Desperdício/purga (%)",
+  "calcFailure": "Taxa de falha (%)",
+  "calcMargin": "Margem de lucro (%)",
+  "calcAdvanced": "Custos e taxas desta peça",
+  "calcAdvancedSubtitle": "Vêm das Configurações. Altere aqui só para esta peça.",
+  "calcResultPrice": "Preço sugerido",
+  "calcResultCost": "Custo total",
+  "calcResultProfit": "Lucro líquido",
+  "calcPriceBeforeRounding": "Sem arredondar: {price}",
+  "@calcPriceBeforeRounding": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "profitPercentOfPrice": "{percent} do preço",
+  "@profitPercentOfPrice": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "calcBreakdown": "Para onde vai o dinheiro",
+  "breakdownMaterial": "Material",
+  "breakdownEnergy": "Energia",
+  "breakdownWear": "Desgaste da máquina",
+  "breakdownLabor": "Mão de obra",
+  "breakdownPackaging": "Embalagem",
+  "breakdownFailure": "Reserva para falhas",
+  "breakdownFees": "Taxa do marketplace",
+  "breakdownTaxes": "Impostos",
+  "breakdownProfit": "Seu lucro",
+  "calcSave": "Salvar peça",
+  "calcUpdate": "Atualizar peça",
+  "calcClear": "Limpar",
+  "calcEditing": "Editando: {name}",
+  "@calcEditing": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "calcImport3mf": "Importar do arquivo (.3mf)",
+  "calcNeedFilament": "Cadastre pelo menos um filamento para calcular.",
+  "calcGoToFilaments": "Cadastrar filamento",
+  "calcFillToSee": "Preencha o filamento e o tempo para ver o preço.",
+  "helpGrams": "Quantos gramas desse filamento a peça usa. O fatiador (Bambu Studio, Orca...) mostra depois de fatiar. Ou use \"Importar do arquivo\".",
+  "helpPrinterField": "Impressora usada. Define o gasto de energia e o desgaste por hora.",
+  "helpPrintTime": "Tempo estimado de impressão mostrado pelo fatiador.",
+  "helpPostProcess": "Seu tempo removendo suporte, lixando, pintando, montando e embalando esta peça.",
+  "errDeductionsTooHigh": "Margem + taxas + impostos somam {total}. Essa soma precisa ficar abaixo de 100%, senão nenhum preço cobre os descontos. Diminua a margem ou as taxas.",
+  "@errDeductionsTooHigh": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "errNegative": "Algum valor está negativo. Confira os campos.",
+  "errRollWeight": "Um filamento está com peso do rolo zerado. Corrija no cadastro do filamento.",
+  "saveJobTitle": "Salvar peça",
+  "jobName": "Nome da peça",
+  "jobCustomer": "Cliente (opcional)",
+  "jobQuantity": "Quantidade",
+  "jobStatus": "Status",
+  "jobNotes": "Observações (opcional)",
+  "jobPhoto": "Foto (opcional)",
+  "takePhoto": "Tirar foto",
+  "pickPhoto": "Galeria",
+  "removePhoto": "Remover foto",
+  "jobSaved": "Peça salva no histórico",
+  "statusQuote": "Orçamento",
+  "statusInProduction": "Em produção",
+  "statusDelivered": "Entregue",
+  "historyEmpty": "Nenhuma peça salva ainda. Calcule um preço e toque em \"Salvar peça\".",
+  "historySearch": "Buscar por nome ou cliente",
+  "filterAll": "Todos",
+  "markPrinted": "Marcar como impressa",
+  "printedBadge": "Impressa",
+  "stockUpdated": "Estoque de filamento atualizado",
+  "stockAlreadyDeducted": "O estoque desta peça já foi descontado.",
+  "lowStockWarning": "{name} está acabando: restam {grams}.",
+  "@lowStockWarning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "grams": {
+        "type": "String"
+      }
+    }
+  },
+  "insufficientStockWarning": "{name}: o estoque cadastrado não era suficiente e ficou zerado. Confira o rolo.",
+  "@insufficientStockWarning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jobDetails": "Detalhes da peça",
+  "openInCalculator": "Abrir na calculadora",
+  "deleteJobConfirm": "Excluir esta peça do histórico? O estoque não é devolvido.",
+  "unitPrice": "Preço unitário",
+  "unitCost": "Custo unitário",
+  "unitProfit": "Lucro unitário",
+  "totalLabel": "Total",
+  "quantityUnits": "{count} un.",
+  "@quantityUnits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "printedOn": "Impressa em {date}",
+  "@printedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "createdOn": "Criada em {date}",
+  "@createdOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "printTimeLabel": "Tempo de impressão",
+  "sourceFileLabel": "Arquivo",
+  "generatePdf": "Orçamento em PDF",
+  "selectForQuote": "Selecionar peças para o orçamento",
+  "quoteSelectedCount": "{count} selecionadas",
+  "@quoteSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createQuote": "Gerar PDF",
+  "pdfCustomerPrompt": "Nome do cliente no orçamento",
+  "pdfQuoteTitle": "Orçamento",
+  "pdfItem": "Item",
+  "pdfQty": "Qtd.",
+  "pdfUnit": "Unitário",
+  "pdfSubtotal": "Subtotal",
+  "pdfTotal": "Total",
+  "pdfCustomer": "Cliente",
+  "pdfDate": "Data",
+  "pdfValidity": "Orçamento válido por 7 dias.",
+  "dashboardEmpty": "Os números aparecem aqui quando você tiver peças em produção ou entregues.",
+  "dashProfitByMonth": "Lucro por mês",
+  "dashRevenue": "Faturamento",
+  "dashProfit": "Lucro",
+  "dashAvgMargin": "Margem média",
+  "dashJobsSold": "Peças vendidas",
+  "dashTopJobs": "Peças mais lucrativas",
+  "dashFilamentUsage": "Filamento mais usado",
+  "dashNote": "Conta peças em produção e entregues. Orçamentos ficam de fora.",
+  "backupExport": "Exportar backup",
+  "backupExportHelp": "Gera um arquivo com todos os seus dados. Guarde no Google Drive, e-mail ou computador.",
+  "backupImport": "Restaurar backup",
+  "backupImportHelp": "Substitui os dados atuais pelos de um arquivo de backup.",
+  "backupImportWarning": "Isso substitui TODOS os dados atuais pelos do arquivo. Faça um backup antes, se precisar. Continuar?",
+  "backupSaved": "Backup salvo",
+  "backupRestored": "Backup restaurado",
+  "backupInvalidFile": "Esse arquivo não parece ser um backup do PrintCost.",
+  "backupNewerVersion": "Esse backup foi feito numa versão mais nova do app. Atualize o app antes de restaurar.",
+  "backupPhotosNote": "Fotos das peças não vão no backup, só os dados.",
+  "backupShare": "Compartilhar",
+  "backupSaveToFile": "Salvar em arquivo",
+  "restore": "Restaurar",
+  "about": "Sobre",
+  "aboutText": "PrintCost é uma calculadora offline: seus dados ficam só no aparelho. Compatível com arquivos do Bambu Studio e impressoras Bambu Lab no modo LAN. Este app não é afiliado, patrocinado ou endossado pela Bambu Lab.",
+  "importPickPlate": "Qual placa você quer importar?",
+  "plateLabel": "Placa {index}",
+  "@plateLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "importSummaryTitle": "Dados encontrados no arquivo",
+  "importTime": "Tempo de impressão: {time}",
+  "@importTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "importFilamentLine": "{name}: {weight}",
+  "@importFilamentLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "importMissingTime": "O arquivo não informa o tempo de impressão. Preencha manualmente.",
+  "importOnlyTotalWeight": "O arquivo só traz o peso total ({weight}), sem separar por filamento. Ele entrou como um filamento só; ajuste se precisar.",
+  "@importOnlyTotalWeight": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "importMissingWeight": "O arquivo não informa o peso do filamento. Preencha manualmente.",
+  "importUnmatched": "Alguns filamentos do arquivo não têm cadastro do mesmo tipo. Escolha o filamento certo na calculadora.",
+  "importErrNotA3mf": "Esse arquivo não é um .3mf válido.",
+  "importErrNoSliceInfo": "Esse .3mf não tem dados de fatiamento (peso e tempo). No Bambu Studio, fatie a placa e salve o projeto, ou use \"Exportar arquivo fatiado da placa\". Você também pode preencher os campos à mão.",
+  "importErrNoPlates": "O arquivo abriu, mas nenhuma placa tem peso ou tempo. Fatie de novo e salve, ou preencha à mão.",
+  "importErrWrongExtension": "Escolha um arquivo .3mf (projeto do Bambu Studio ou .gcode.3mf).",
+  "importApply": "Usar estes dados",
+  "pmTitle": "Impressora na rede",
+  "pmSubtitle": "Acompanhe a impressão em tempo real",
+  "pmEmpty": "Nenhuma impressora conectada ainda. Toque em + para configurar (leva uns 3 minutos).",
+  "pmAdd": "Conectar impressora",
+  "pmDeleteConfirm": "Remover esta conexão? O código de acesso salvo no aparelho também é apagado.",
+  "pmRemoteTitle": "Acompanhar fora de casa",
+  "pmRemoteText": "Use uma VPN como Tailscale ou NetBird no celular e em um computador ou roteador da sua casa: é grátis para uso pessoal e o celular passa a \"enxergar\" a impressora como se estivesse no Wi-Fi. Nunca abra a porta da impressora (8883) na internet com redirecionamento de portas no roteador: qualquer pessoa poderia tentar acessá-la.",
+  "pmState_idle": "Ociosa",
+  "pmState_preparing": "Preparando",
+  "pmState_printing": "Imprimindo",
+  "pmState_paused": "Pausada",
+  "pmState_finished": "Concluída",
+  "pmState_failed": "Falhou",
+  "pmState_unknown": "Aguardando status…",
+  "pmConnecting": "Conectando…",
+  "pmConnected": "Conectada",
+  "pmDisconnected": "Desconectada",
+  "pmReconnect": "Tentar de novo",
+  "pmRemaining": "Faltam {time}",
+  "@pmRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pmFile": "Arquivo: {name}",
+  "@pmFile": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pmErrorCode": "Código de erro da impressora: {code}",
+  "@pmErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "pmRegisterPrint": "Registrar esta impressão",
+  "pmRegisterText": "Para pegar o peso de cada filamento, escolha o arquivo .3mf desta impressão (o mesmo que você mandou imprimir). Ou siga só com o tempo e preencha o peso na calculadora.",
+  "pmRegisterNoFetch": "Baixar o arquivo direto da impressora ainda não é suportado.",
+  "pmChoose3mf": "Escolher .3mf",
+  "pmOnlyTime": "Só o tempo",
+  "pmDebugTitle": "Mensagens recebidas (debug)",
+  "pmDebugHelp": "Últimas mensagens cruas enviadas pela impressora. Use para conferir os nomes dos campos se algo aparecer errado. O código de acesso nunca aparece aqui.",
+  "pmDebugEmpty": "Nenhuma mensagem ainda.",
+  "pmCopy": "Copiar",
+  "pmCopied": "Copiado",
+  "pmMergedState": "Estado mesclado atual",
+  "pmNotifyFinished": "Impressão concluída",
+  "pmNotifyFailed": "A impressão falhou",
+  "pmNotifyChannel": "Status da impressora",
+  "pmForegroundNote": "Os avisos de fim de impressão funcionam enquanto o app está aberto ou em segundo plano recente. Se o sistema fechar o app, abra-o de novo para reconectar.",
+  "wzTitle": "Conectar impressora",
+  "wzStep": "Passo {step} de 4",
+  "@wzStep": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "wz1Title": "Ative o modo LAN",
+  "wz1Text": "Na tela da impressora, abra Configurações (engrenagem) → WLAN/Rede e ligue \"Modo somente LAN\" (LAN Only Mode). Assim ela conversa direto com o celular pela sua rede Wi-Fi, sem passar pela nuvem.\n\nEnquanto o modo LAN estiver ligado, o app oficial e a impressão pela nuvem não funcionam.",
+  "wz2Title": "Ative o Developer Mode",
+  "wz2Text": "Em firmwares recentes (e nos modelos H2) também é preciso ligar o \"Modo desenvolvedor\" (Developer Mode), que fica na mesma tela do modo LAN.\n\nAtenção: é um modo sem suporte oficial da fabricante. Ele libera o acesso local para programas de terceiros como este. O PrintCost só lê o status: nunca envia comandos para a impressora.",
+  "wz3Title": "Dados da impressora",
+  "wz3Text": "Na tela de rede da impressora aparecem o IP e o código de acesso (8 caracteres). O número de série fica em Configurações → Dispositivo (ou na etiqueta atrás da impressora).",
+  "wz4Title": "Testar conexão",
+  "wz4Text": "O celular precisa estar no mesmo Wi-Fi da impressora.",
+  "wzName": "Nome",
+  "wzIp": "Endereço IP",
+  "wzSerial": "Número de série",
+  "wzCode": "Código de acesso",
+  "wzLinkedPrinter": "Impressora cadastrada (para os custos)",
+  "wzLinkedNone": "Nenhuma",
+  "wzHelpIp": "Aparece na tela de rede da impressora. Ex.: 192.168.0.50. Dica: reserve esse IP no roteador para ele não mudar.",
+  "wzHelpCode": "8 caracteres, na tela do modo LAN. Muda toda vez que você desliga e liga o modo LAN. Fica guardado só neste aparelho, de forma protegida, e não vai no backup.",
+  "wzHelpSerial": "Em Configurações → Dispositivo, ou na etiqueta. Pode digitar com ou sem traços.",
+  "wzInvalidIp": "Use o formato 192.168.0.50",
+  "wzInvalidCode": "O código tem 8 caracteres",
+  "wzTest": "Testar conexão",
+  "wzTesting": "Testando…",
+  "wzSuccess": "Conectado! A impressora está: {state}",
+  "@wzSuccess": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "wzSave": "Salvar e acompanhar",
+  "wzShowCode": "Mostrar código",
+  "errUnreachable": "Não encontrei a impressora em {ip}. Confira: o IP está certo? O celular está no mesmo Wi-Fi (não no 4G/5G nem na rede de convidados)? A impressora está ligada e com o modo LAN ativo?",
+  "@errUnreachable": {
+    "placeholders": {
+      "ip": {
+        "type": "String"
+      }
+    }
+  },
+  "errRejected": "A impressora recusou a conexão. Confira o código de acesso: ele muda sempre que o modo LAN é desligado e ligado de novo. Em firmwares recentes, confira também se o Developer Mode está ligado.",
+  "errNoReports": "Conectou, mas a impressora não enviou o status. Isso costuma acontecer com o Developer Mode desligado ou com o número de série errado.",
+  "errCertChanged": "O certificado de segurança da impressora mudou desde a última conexão. Se você trocou ou resetou a impressora, remova a conexão e cadastre de novo. Se não, pode haver outro aparelho se passando pela impressora na rede.",
+  "errInvalidConfig": "Confira os campos: o IP deve estar no formato 192.168.0.50 e o código tem 8 caracteres.",
+  "errUnknownPrinter": "Não foi possível conectar. {detail}",
+  "@errUnknownPrinter": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  }
+}
