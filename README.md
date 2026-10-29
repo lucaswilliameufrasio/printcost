@@ -194,6 +194,12 @@ roteador da rede da impressora. **Nunca** exponha a porta da impressora
   Tráfego em texto puro desligado (`usesCleartextTraffic="false"`).
 - iOS: `NSLocalNetworkUsageDescription`, câmera e fotos (foto da peça/logo).
 
+## Pendências
+
+Validações com arquivos e impressoras reais, limitações conhecidas e a
+proposta de estação local + notificações push estão em
+[docs/pendencias.md](docs/pendencias.md).
+
 ## Backup
 
 **Mais → Backup**: exporta um snapshot consistente do banco
