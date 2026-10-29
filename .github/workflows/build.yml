@@ -1,0 +1,163 @@
+name: Build apps
+
+# - Pull requests: analyze, test and build the APK (kept as a workflow artifact).
+# - Push to main: same, then refresh the "dev" pre-release with the new APK,
+#   so there is a fixed public download link for testers.
+# - Tag v*: publish a numbered pre-release with the APK.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FLUTTER_VERSION: 3.47.8
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
+    outputs:
+      version: ${{ steps.version.outputs.name }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Version
+        id: version
+        run: |
+          base=$(sed -n 's/^version: *\([^+]*\).*/\1/p' pubspec.yaml)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            name="${GITHUB_REF_NAME#v}"
+          else
+            name="$base-dev.$GITHUB_RUN_NUMBER"
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      # The same test key on every build, so a new version installs over the
+      # previous one. Not the Play Store key. Missing on forks: debug key.
+      - name: Test signing key
+        if: env.KEYSTORE_BASE64 != ''
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/test.jks"
+          echo "PRINTCOST_KEYSTORE_PATH=$RUNNER_TEMP/test.jks" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        env:
+          PRINTCOST_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TEST_KEYSTORE_PASSWORD }}
+          PRINTCOST_KEY_ALIAS: ${{ secrets.ANDROID_TEST_KEY_ALIAS }}
+          PRINTCOST_KEY_PASSWORD: ${{ secrets.ANDROID_TEST_KEYSTORE_PASSWORD }}
+        run: |
+          flutter build apk --release \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number "$GITHUB_RUN_NUMBER"
+          mkdir -p dist
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            cp build/app/outputs/flutter-apk/app-release.apk \
+              "dist/printcost-${{ steps.version.outputs.name }}.apk"
+          else
+            cp build/app/outputs/flutter-apk/app-release.apk dist/printcost-dev.apk
+          fi
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: printcost-android
+          path: dist/*.apk
+          retention-days: 14
+
+  dev-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: dev-release
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.android.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: printcost-android
+          path: dist
+      - name: Update the dev pre-release
+        run: |
+          cat > notes.md <<EOF
+          **Versão de teste** ($VERSION), gerada automaticamente a cada mudança
+          na \`main\` (commit ${GITHUB_SHA::7}). Pode ter erros e mudar a qualquer
+          momento. Não é uma versão final.
+
+          **Como instalar no Android:** abra este link no celular, baixe
+          \`printcost-dev.apk\` e permita a instalação quando o Android pedir.
+          Versões de teste novas instalam por cima da anterior sem apagar seus
+          dados.
+
+          ---
+
+          **Test build** ($VERSION), built automatically on every change to
+          \`main\`. It may have bugs. New test builds install over the previous
+          one and keep your data.
+          EOF
+          if gh release view dev >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/dev" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release edit dev --prerelease --latest=false \
+              --title "Versão de teste (dev)" --notes-file notes.md
+          else
+            gh release create dev --target "$GITHUB_SHA" --prerelease \
+              --latest=false --title "Versão de teste (dev)" --notes-file notes.md
+          fi
+          gh release upload dev dist/printcost-dev.apk --clobber
+
+  tagged-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: printcost-android
+          path: dist
+      # Numbered versions stay pre-releases until there is a store release.
+      - run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.apk --verify-tag \
+            --prerelease --latest=false --generate-notes \
+            --title "PrintCost $GITHUB_REF_NAME (teste)"
