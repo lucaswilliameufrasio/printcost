@@ -101,13 +101,16 @@ gera o APK em todo pull request e push.
   Ele fica marcado como pré-lançamento, nunca como "Latest".
 - **Tags `v*`** (ex.: `v0.1.0`) publicam um pré-lançamento numerado com o APK.
 
-Os APKs do CI são assinados com uma **chave fixa só para testes**, guardada
-nos secrets do repositório (`ANDROID_TEST_KEYSTORE_BASE64`,
-`ANDROID_TEST_KEYSTORE_PASSWORD`, `ANDROID_TEST_KEY_ALIAS`). Com ela, uma
-versão nova instala por cima da anterior sem perder os dados. Ela não é a
-chave da Play Store: o app da loja terá outra assinatura, e por isso não
-instala por cima de uma versão de teste (é preciso desinstalar antes). Em
-forks, sem os secrets, o CI usa a chave de debug.
+Os APKs do CI são assinados com uma **chave de testes fixa** (secrets
+`ANDROID_DEV_KEYSTORE_*`, alias `printcost-dev`), para cada versão instalar por
+cima da anterior sem perder os dados. Sem os secrets (ex.: em forks), o build
+usa uma chave descartável e nada é publicado. A chave da Play Store, quando
+houver, deve ser outra.
+
+**Restaurar a chave em outro computador, fazer backup no Bitwarden, atualizar
+os secrets ou criar uma chave nova:** `mise run chave` (um menu no terminal).
+Passo a passo completo, inclusive sem a ferramenta:
+[`docs/assinatura-android.md`](docs/assinatura-android.md).
 
 ## Arquitetura
 
