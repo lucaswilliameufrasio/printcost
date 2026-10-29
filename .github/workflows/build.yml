@@ -37,6 +37,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: tool/signing-key/go.mod
+          cache-dependency-path: tool/signing-key/go.sum
       - name: Signing key tool
         working-directory: tool/signing-key
         run: |
