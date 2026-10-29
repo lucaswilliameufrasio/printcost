@@ -18,32 +18,13 @@ Future<void> shareQuotePdf(
   if (jobs.isEmpty) return;
   final l = AppLocalizations.of(context);
   final fmt = Formatters.of(context, ref);
-  final controller = TextEditingController(
-    text: jobs.map((j) => j.customer).whereType<String>().firstOrNull ?? '',
-  );
   final customer = await showDialog<String>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(l.generatePdf),
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        textCapitalization: TextCapitalization.words,
-        decoration: InputDecoration(labelText: l.pdfCustomerPrompt),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l.cancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-          child: Text(l.createQuote),
-        ),
-      ],
+    builder: (context) => _CustomerDialog(
+      initial:
+          jobs.map((j) => j.customer).whereType<String>().firstOrNull ?? '',
     ),
   );
-  controller.dispose();
   if (customer == null) return;
 
   try {
@@ -87,5 +68,48 @@ Future<void> shareQuotePdf(
     );
   } on Exception catch (e) {
     if (context.mounted) showSnack(context, l.unexpectedError('$e'));
+  }
+}
+
+/// Owns its controller so it lives until the dialog's exit animation ends.
+class _CustomerDialog extends StatefulWidget {
+  const _CustomerDialog({required this.initial});
+  final String initial;
+
+  @override
+  State<_CustomerDialog> createState() => _CustomerDialogState();
+}
+
+class _CustomerDialogState extends State<_CustomerDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l.generatePdf),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        decoration: InputDecoration(labelText: l.pdfCustomerPrompt),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: Text(l.createQuote),
+        ),
+      ],
+    );
   }
 }

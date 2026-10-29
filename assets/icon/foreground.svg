@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Price tag, tilted, with print layers inside. Kept within the adaptive-icon safe zone. -->
+  <g transform="rotate(-30 512 512)">
+    <path d="M 330 372 L 560 372 Q 590 372 612 394 L 742 512 L 612 630 Q 590 652 560 652 L 330 652 Q 290 652 290 612 L 290 412 Q 290 372 330 372 Z"
+          fill="#FFFFFF"/>
+    <circle cx="650" cy="512" r="34" fill="#00796B"/>
+    <rect x="340" y="432" width="220" height="34" rx="17" fill="#00796B"/>
+    <rect x="340" y="495" width="190" height="34" rx="17" fill="#26A69A"/>
+    <rect x="340" y="558" width="220" height="34" rx="17" fill="#00796B"/>
+  </g>
+</svg>

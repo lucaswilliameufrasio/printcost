@@ -56,6 +56,19 @@ class JobRepository {
 
   Future<JobWithFilaments?> job(int id) => watchJob(id).first;
 
+  /// Every job with its filament lines, newest first (for export).
+  Future<List<JobWithFilaments>> allJobs() async {
+    final jobs = await (_db.select(
+      _db.jobs,
+    )..orderBy([(j) => OrderingTerm.desc(j.createdAt)])).get();
+    final lines = await _db.select(_db.jobFilaments).get();
+    final byJob = <int, List<JobFilamentRow>>{};
+    for (final l in lines) {
+      byJob.putIfAbsent(l.jobId, () => []).add(l);
+    }
+    return [for (final j in jobs) JobWithFilaments(j, byJob[j.id] ?? [])];
+  }
+
   /// Inserts or replaces a job and its filament lines atomically.
   Future<int> saveJob(JobsCompanion job, List<JobFilamentsCompanion> lines) =>
       _db.transaction(() async {

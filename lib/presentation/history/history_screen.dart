@@ -12,6 +12,7 @@ import '../common/async_view.dart';
 import '../common/formatters.dart';
 import '../providers.dart';
 import '../router.dart';
+import 'export_csv.dart';
 import 'quote_actions.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -52,6 +53,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               )
             : null,
         actions: [
+          if (!_selecting)
+            IconButton(
+              key: const Key('history.exportCsv'),
+              tooltip: l.historyExportCsv,
+              icon: const Icon(Icons.table_view_outlined),
+              onPressed: () => exportHistoryCsv(context, ref),
+            ),
           if (!_selecting)
             IconButton(
               tooltip: l.selectForQuote,

@@ -67,4 +67,43 @@ class CatalogRepository {
 
   Future<void> updateSettings(AppSettingsCompanion data) =>
       (_db.update(_db.appSettings)..where((s) => s.id.equals(1))).write(data);
+
+  Stream<List<SalesChannelRow>> watchChannels() =>
+      (_db.select(_db.salesChannels)
+            ..where((c) => c.archived.equals(false))
+            ..orderBy([
+              (c) => OrderingTerm.asc(c.sortOrder),
+              (c) => OrderingTerm.asc(c.name),
+            ]))
+          .watch();
+
+  Future<SalesChannelRow?> channel(int id) => (_db.select(
+    _db.salesChannels,
+  )..where((c) => c.id.equals(id))).getSingleOrNull();
+
+  Future<int> saveChannel(SalesChannelsCompanion data) async {
+    if (data.id.present) {
+      await (_db.update(
+        _db.salesChannels,
+      )..where((c) => c.id.equals(data.id.value))).write(data);
+      return data.id.value;
+    }
+    return _db.into(_db.salesChannels).insert(data);
+  }
+
+  Future<void> archiveChannel(int id) =>
+      (_db.update(_db.salesChannels)..where((c) => c.id.equals(id))).write(
+        const SalesChannelsCompanion(archived: Value(true)),
+      );
+
+  /// Saves everything from the first-run setup at once.
+  Future<void> completeOnboarding({
+    required AppSettingsCompanion settings,
+    FilamentsCompanion? filament,
+    PrintersCompanion? printer,
+  }) => _db.transaction(() async {
+    if (filament != null) await _db.into(_db.filaments).insert(filament);
+    if (printer != null) await _db.into(_db.printers).insert(printer);
+    await updateSettings(settings.copyWith(onboardingDone: const Value(true)));
+  });
 }

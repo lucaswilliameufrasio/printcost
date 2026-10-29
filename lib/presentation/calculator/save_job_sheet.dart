@@ -148,6 +148,7 @@ class _SaveJobSheetState extends State<_SaveJobSheet> {
               ),
               gap,
               SegmentedButton<JobStatus>(
+                showSelectedIcon: false,
                 segments: [
                   for (final s in JobStatus.values)
                     ButtonSegment(value: s, label: Text(statusLabel(l, s))),

@@ -43,11 +43,14 @@ proposta para as que dependem de algo além do app.
 | Peso do filamento não vem da impressora | O download por FTPS (porta 990) precisa reaproveitar a sessão TLS no canal de dados, e o `dart:io` não oferece isso | Seção 3 (a estação baixa e lê o `.3mf`) ou um plugin nativo |
 | APK de release assinado com a chave de debug | Padrão do `flutter create` | Configurar a chave de upload antes de publicar |
 | Fotos das peças não entram no backup | O backup é só o arquivo do banco | Backup em `.zip` com banco + fotos |
+| Taxas de exemplo de Shopee e Mercado Livre envelhecem | Os marketplaces mudam as taxas com frequência e elas variam por categoria e tipo de conta (ex.: CPF paga valor extra na Shopee; o fixo do Mercado Livre passou a variar por peso) | O app marca como "exemplo" até o usuário salvar o canal, avisa na calculadora e leva às páginas oficiais; revisar os valores e os links de `seed_channels.dart` a cada versão |
+| Nome do canal "Venda direta" segue o idioma do aparelho na criação do banco | É gravado como dado, não como texto traduzido | Renomeável pelo usuário; traduzir na exibição se virar problema |
 
 ### 2.1 Antes de publicar nas lojas
 
 - Chave de assinatura do Android e perfil de distribuição do iOS.
-- Ícone e telas de abertura próprios (hoje são os padrões do Flutter).
+- Ícone e tela de abertura: feitos (`assets/icon/`). Vale um designer
+  revisar antes da loja.
 - Política de privacidade e formulários de privacidade das lojas (Data
   safety no Google Play, rótulos de privacidade na App Store). Enquanto o
   app for 100% local, a resposta é "nenhum dado coletado". Se a seção 3 for

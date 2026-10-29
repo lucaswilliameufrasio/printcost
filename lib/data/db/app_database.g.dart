@@ -1397,6 +1397,32 @@ class $AppSettingsTable extends AppSettings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _onboardingDoneMeta = const VerificationMeta(
+    'onboardingDone',
+  );
+  @override
+  late final GeneratedColumn<bool> onboardingDone = GeneratedColumn<bool>(
+    'onboarding_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("onboarding_done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _defaultChannelIdMeta = const VerificationMeta(
+    'defaultChannelId',
+  );
+  @override
+  late final GeneratedColumn<int> defaultChannelId = GeneratedColumn<int>(
+    'default_channel_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1416,6 +1442,8 @@ class $AppSettingsTable extends AppSettings
     shopContact,
     shopLogo,
     printerModuleEnabled,
+    onboardingDone,
+    defaultChannelId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1549,6 +1577,24 @@ class $AppSettingsTable extends AppSettings
         ),
       );
     }
+    if (data.containsKey('onboarding_done')) {
+      context.handle(
+        _onboardingDoneMeta,
+        onboardingDone.isAcceptableOrUnknown(
+          data['onboarding_done']!,
+          _onboardingDoneMeta,
+        ),
+      );
+    }
+    if (data.containsKey('default_channel_id')) {
+      context.handle(
+        _defaultChannelIdMeta,
+        defaultChannelId.isAcceptableOrUnknown(
+          data['default_channel_id']!,
+          _defaultChannelIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1628,6 +1674,14 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.bool,
         data['${effectivePrefix}printer_module_enabled'],
       )!,
+      onboardingDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}onboarding_done'],
+      )!,
+      defaultChannelId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}default_channel_id'],
+      ),
     );
   }
 
@@ -1664,6 +1718,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final String shopContact;
   final Uint8List? shopLogo;
   final bool printerModuleEnabled;
+
+  /// v3: first-run setup finished.
+  final bool onboardingDone;
+
+  /// v3: channel preselected in the calculator.
+  final int? defaultChannelId;
   const SettingsRow({
     required this.id,
     required this.currencyCode,
@@ -1682,6 +1742,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     required this.shopContact,
     this.shopLogo,
     required this.printerModuleEnabled,
+    required this.onboardingDone,
+    this.defaultChannelId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1711,6 +1773,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       map['shop_logo'] = Variable<Uint8List>(shopLogo);
     }
     map['printer_module_enabled'] = Variable<bool>(printerModuleEnabled);
+    map['onboarding_done'] = Variable<bool>(onboardingDone);
+    if (!nullToAbsent || defaultChannelId != null) {
+      map['default_channel_id'] = Variable<int>(defaultChannelId);
+    }
     return map;
   }
 
@@ -1737,6 +1803,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ? const Value.absent()
           : Value(shopLogo),
       printerModuleEnabled: Value(printerModuleEnabled),
+      onboardingDone: Value(onboardingDone),
+      defaultChannelId: defaultChannelId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultChannelId),
     );
   }
 
@@ -1767,6 +1837,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       printerModuleEnabled: serializer.fromJson<bool>(
         json['printerModuleEnabled'],
       ),
+      onboardingDone: serializer.fromJson<bool>(json['onboardingDone']),
+      defaultChannelId: serializer.fromJson<int?>(json['defaultChannelId']),
     );
   }
   @override
@@ -1792,6 +1864,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'shopContact': serializer.toJson<String>(shopContact),
       'shopLogo': serializer.toJson<Uint8List?>(shopLogo),
       'printerModuleEnabled': serializer.toJson<bool>(printerModuleEnabled),
+      'onboardingDone': serializer.toJson<bool>(onboardingDone),
+      'defaultChannelId': serializer.toJson<int?>(defaultChannelId),
     };
   }
 
@@ -1813,6 +1887,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     String? shopContact,
     Value<Uint8List?> shopLogo = const Value.absent(),
     bool? printerModuleEnabled,
+    bool? onboardingDone,
+    Value<int?> defaultChannelId = const Value.absent(),
   }) => SettingsRow(
     id: id ?? this.id,
     currencyCode: currencyCode ?? this.currencyCode,
@@ -1831,6 +1907,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     shopContact: shopContact ?? this.shopContact,
     shopLogo: shopLogo.present ? shopLogo.value : this.shopLogo,
     printerModuleEnabled: printerModuleEnabled ?? this.printerModuleEnabled,
+    onboardingDone: onboardingDone ?? this.onboardingDone,
+    defaultChannelId: defaultChannelId.present
+        ? defaultChannelId.value
+        : this.defaultChannelId,
   );
   SettingsRow copyWithCompanion(AppSettingsCompanion data) {
     return SettingsRow(
@@ -1873,6 +1953,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       printerModuleEnabled: data.printerModuleEnabled.present
           ? data.printerModuleEnabled.value
           : this.printerModuleEnabled,
+      onboardingDone: data.onboardingDone.present
+          ? data.onboardingDone.value
+          : this.onboardingDone,
+      defaultChannelId: data.defaultChannelId.present
+          ? data.defaultChannelId.value
+          : this.defaultChannelId,
     );
   }
 
@@ -1895,7 +1981,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('shopName: $shopName, ')
           ..write('shopContact: $shopContact, ')
           ..write('shopLogo: $shopLogo, ')
-          ..write('printerModuleEnabled: $printerModuleEnabled')
+          ..write('printerModuleEnabled: $printerModuleEnabled, ')
+          ..write('onboardingDone: $onboardingDone, ')
+          ..write('defaultChannelId: $defaultChannelId')
           ..write(')'))
         .toString();
   }
@@ -1919,6 +2007,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     shopContact,
     $driftBlobEquality.hash(shopLogo),
     printerModuleEnabled,
+    onboardingDone,
+    defaultChannelId,
   );
   @override
   bool operator ==(Object other) =>
@@ -1940,7 +2030,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.shopName == this.shopName &&
           other.shopContact == this.shopContact &&
           $driftBlobEquality.equals(other.shopLogo, this.shopLogo) &&
-          other.printerModuleEnabled == this.printerModuleEnabled);
+          other.printerModuleEnabled == this.printerModuleEnabled &&
+          other.onboardingDone == this.onboardingDone &&
+          other.defaultChannelId == this.defaultChannelId);
 }
 
 class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
@@ -1961,6 +2053,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
   final Value<String> shopContact;
   final Value<Uint8List?> shopLogo;
   final Value<bool> printerModuleEnabled;
+  final Value<bool> onboardingDone;
+  final Value<int?> defaultChannelId;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.currencyCode = const Value.absent(),
@@ -1979,6 +2073,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
     this.shopContact = const Value.absent(),
     this.shopLogo = const Value.absent(),
     this.printerModuleEnabled = const Value.absent(),
+    this.onboardingDone = const Value.absent(),
+    this.defaultChannelId = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -1998,6 +2094,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
     this.shopContact = const Value.absent(),
     this.shopLogo = const Value.absent(),
     this.printerModuleEnabled = const Value.absent(),
+    this.onboardingDone = const Value.absent(),
+    this.defaultChannelId = const Value.absent(),
   });
   static Insertable<SettingsRow> custom({
     Expression<int>? id,
@@ -2017,6 +2115,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
     Expression<String>? shopContact,
     Expression<Uint8List>? shopLogo,
     Expression<bool>? printerModuleEnabled,
+    Expression<bool>? onboardingDone,
+    Expression<int>? defaultChannelId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2037,6 +2137,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
       if (shopLogo != null) 'shop_logo': shopLogo,
       if (printerModuleEnabled != null)
         'printer_module_enabled': printerModuleEnabled,
+      if (onboardingDone != null) 'onboarding_done': onboardingDone,
+      if (defaultChannelId != null) 'default_channel_id': defaultChannelId,
     });
   }
 
@@ -2058,6 +2160,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
     Value<String>? shopContact,
     Value<Uint8List?>? shopLogo,
     Value<bool>? printerModuleEnabled,
+    Value<bool>? onboardingDone,
+    Value<int?>? defaultChannelId,
   }) {
     return AppSettingsCompanion(
       id: id ?? this.id,
@@ -2077,6 +2181,8 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
       shopContact: shopContact ?? this.shopContact,
       shopLogo: shopLogo ?? this.shopLogo,
       printerModuleEnabled: printerModuleEnabled ?? this.printerModuleEnabled,
+      onboardingDone: onboardingDone ?? this.onboardingDone,
+      defaultChannelId: defaultChannelId ?? this.defaultChannelId,
     );
   }
 
@@ -2138,6 +2244,12 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
         printerModuleEnabled.value,
       );
     }
+    if (onboardingDone.present) {
+      map['onboarding_done'] = Variable<bool>(onboardingDone.value);
+    }
+    if (defaultChannelId.present) {
+      map['default_channel_id'] = Variable<int>(defaultChannelId.value);
+    }
     return map;
   }
 
@@ -2160,7 +2272,519 @@ class AppSettingsCompanion extends UpdateCompanion<SettingsRow> {
           ..write('shopName: $shopName, ')
           ..write('shopContact: $shopContact, ')
           ..write('shopLogo: $shopLogo, ')
-          ..write('printerModuleEnabled: $printerModuleEnabled')
+          ..write('printerModuleEnabled: $printerModuleEnabled, ')
+          ..write('onboardingDone: $onboardingDone, ')
+          ..write('defaultChannelId: $defaultChannelId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SalesChannelsTable extends SalesChannels
+    with TableInfo<$SalesChannelsTable, SalesChannelRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SalesChannelsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 60,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<List<FeeTier>, String> tiers =
+      GeneratedColumn<String>(
+        'tiers',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<List<FeeTier>>($SalesChannelsTable.$convertertiers);
+  static const VerificationMeta _isExampleMeta = const VerificationMeta(
+    'isExample',
+  );
+  @override
+  late final GeneratedColumn<bool> isExample = GeneratedColumn<bool>(
+    'is_example',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_example" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _infoUrlMeta = const VerificationMeta(
+    'infoUrl',
+  );
+  @override
+  late final GeneratedColumn<String> infoUrl = GeneratedColumn<String>(
+    'info_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _archivedMeta = const VerificationMeta(
+    'archived',
+  );
+  @override
+  late final GeneratedColumn<bool> archived = GeneratedColumn<bool>(
+    'archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    tiers,
+    isExample,
+    infoUrl,
+    sortOrder,
+    archived,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sales_channels';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SalesChannelRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('is_example')) {
+      context.handle(
+        _isExampleMeta,
+        isExample.isAcceptableOrUnknown(data['is_example']!, _isExampleMeta),
+      );
+    }
+    if (data.containsKey('info_url')) {
+      context.handle(
+        _infoUrlMeta,
+        infoUrl.isAcceptableOrUnknown(data['info_url']!, _infoUrlMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('archived')) {
+      context.handle(
+        _archivedMeta,
+        archived.isAcceptableOrUnknown(data['archived']!, _archivedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SalesChannelRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SalesChannelRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      tiers: $SalesChannelsTable.$convertertiers.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}tiers'],
+        )!,
+      ),
+      isExample: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_example'],
+      )!,
+      infoUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}info_url'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      archived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}archived'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SalesChannelsTable createAlias(String alias) {
+    return $SalesChannelsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<List<FeeTier>, String> $convertertiers =
+      const FeeTiersConverter();
+}
+
+class SalesChannelRow extends DataClass implements Insertable<SalesChannelRow> {
+  final int id;
+  final String name;
+
+  /// Fee tiers by price, as JSON.
+  final List<FeeTier> tiers;
+
+  /// Seeded with example fees that the user should check.
+  final bool isExample;
+
+  /// Page where the marketplace publishes its current fees.
+  final String? infoUrl;
+  final int sortOrder;
+  final bool archived;
+  final DateTime createdAt;
+  const SalesChannelRow({
+    required this.id,
+    required this.name,
+    required this.tiers,
+    required this.isExample,
+    this.infoUrl,
+    required this.sortOrder,
+    required this.archived,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    {
+      map['tiers'] = Variable<String>(
+        $SalesChannelsTable.$convertertiers.toSql(tiers),
+      );
+    }
+    map['is_example'] = Variable<bool>(isExample);
+    if (!nullToAbsent || infoUrl != null) {
+      map['info_url'] = Variable<String>(infoUrl);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['archived'] = Variable<bool>(archived);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SalesChannelsCompanion toCompanion(bool nullToAbsent) {
+    return SalesChannelsCompanion(
+      id: Value(id),
+      name: Value(name),
+      tiers: Value(tiers),
+      isExample: Value(isExample),
+      infoUrl: infoUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(infoUrl),
+      sortOrder: Value(sortOrder),
+      archived: Value(archived),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SalesChannelRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SalesChannelRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      tiers: serializer.fromJson<List<FeeTier>>(json['tiers']),
+      isExample: serializer.fromJson<bool>(json['isExample']),
+      infoUrl: serializer.fromJson<String?>(json['infoUrl']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      archived: serializer.fromJson<bool>(json['archived']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'tiers': serializer.toJson<List<FeeTier>>(tiers),
+      'isExample': serializer.toJson<bool>(isExample),
+      'infoUrl': serializer.toJson<String?>(infoUrl),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'archived': serializer.toJson<bool>(archived),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SalesChannelRow copyWith({
+    int? id,
+    String? name,
+    List<FeeTier>? tiers,
+    bool? isExample,
+    Value<String?> infoUrl = const Value.absent(),
+    int? sortOrder,
+    bool? archived,
+    DateTime? createdAt,
+  }) => SalesChannelRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    tiers: tiers ?? this.tiers,
+    isExample: isExample ?? this.isExample,
+    infoUrl: infoUrl.present ? infoUrl.value : this.infoUrl,
+    sortOrder: sortOrder ?? this.sortOrder,
+    archived: archived ?? this.archived,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SalesChannelRow copyWithCompanion(SalesChannelsCompanion data) {
+    return SalesChannelRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      tiers: data.tiers.present ? data.tiers.value : this.tiers,
+      isExample: data.isExample.present ? data.isExample.value : this.isExample,
+      infoUrl: data.infoUrl.present ? data.infoUrl.value : this.infoUrl,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      archived: data.archived.present ? data.archived.value : this.archived,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SalesChannelRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('tiers: $tiers, ')
+          ..write('isExample: $isExample, ')
+          ..write('infoUrl: $infoUrl, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('archived: $archived, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    tiers,
+    isExample,
+    infoUrl,
+    sortOrder,
+    archived,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SalesChannelRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.tiers == this.tiers &&
+          other.isExample == this.isExample &&
+          other.infoUrl == this.infoUrl &&
+          other.sortOrder == this.sortOrder &&
+          other.archived == this.archived &&
+          other.createdAt == this.createdAt);
+}
+
+class SalesChannelsCompanion extends UpdateCompanion<SalesChannelRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<List<FeeTier>> tiers;
+  final Value<bool> isExample;
+  final Value<String?> infoUrl;
+  final Value<int> sortOrder;
+  final Value<bool> archived;
+  final Value<DateTime> createdAt;
+  const SalesChannelsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.tiers = const Value.absent(),
+    this.isExample = const Value.absent(),
+    this.infoUrl = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.archived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SalesChannelsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required List<FeeTier> tiers,
+    this.isExample = const Value.absent(),
+    this.infoUrl = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.archived = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : name = Value(name),
+       tiers = Value(tiers);
+  static Insertable<SalesChannelRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? tiers,
+    Expression<bool>? isExample,
+    Expression<String>? infoUrl,
+    Expression<int>? sortOrder,
+    Expression<bool>? archived,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (tiers != null) 'tiers': tiers,
+      if (isExample != null) 'is_example': isExample,
+      if (infoUrl != null) 'info_url': infoUrl,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (archived != null) 'archived': archived,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SalesChannelsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<List<FeeTier>>? tiers,
+    Value<bool>? isExample,
+    Value<String?>? infoUrl,
+    Value<int>? sortOrder,
+    Value<bool>? archived,
+    Value<DateTime>? createdAt,
+  }) {
+    return SalesChannelsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      tiers: tiers ?? this.tiers,
+      isExample: isExample ?? this.isExample,
+      infoUrl: infoUrl ?? this.infoUrl,
+      sortOrder: sortOrder ?? this.sortOrder,
+      archived: archived ?? this.archived,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (tiers.present) {
+      map['tiers'] = Variable<String>(
+        $SalesChannelsTable.$convertertiers.toSql(tiers.value),
+      );
+    }
+    if (isExample.present) {
+      map['is_example'] = Variable<bool>(isExample.value);
+    }
+    if (infoUrl.present) {
+      map['info_url'] = Variable<String>(infoUrl.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (archived.present) {
+      map['archived'] = Variable<bool>(archived.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SalesChannelsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('tiers: $tiers, ')
+          ..write('isExample: $isExample, ')
+          ..write('infoUrl: $infoUrl, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('archived: $archived, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -2438,6 +3062,54 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, JobRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<PriceRounding>($JobsTable.$converterpriceRounding);
+  static const VerificationMeta _channelIdMeta = const VerificationMeta(
+    'channelId',
+  );
+  @override
+  late final GeneratedColumn<int> channelId = GeneratedColumn<int>(
+    'channel_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sales_channels (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _channelNameMeta = const VerificationMeta(
+    'channelName',
+  );
+  @override
+  late final GeneratedColumn<String> channelName = GeneratedColumn<String>(
+    'channel_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _marketplaceFixedCentsMeta =
+      const VerificationMeta('marketplaceFixedCents');
+  @override
+  late final GeneratedColumn<int> marketplaceFixedCents = GeneratedColumn<int>(
+    'marketplace_fixed_cents',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _unitsPerPrintMeta = const VerificationMeta(
+    'unitsPerPrint',
+  );
+  @override
+  late final GeneratedColumn<int> unitsPerPrint = GeneratedColumn<int>(
+    'units_per_print',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _costCentsMeta = const VerificationMeta(
     'costCents',
   );
@@ -2546,6 +3218,10 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, JobRow> {
     marketplaceFeeBp,
     taxBp,
     priceRounding,
+    channelId,
+    channelName,
+    marketplaceFixedCents,
+    unitsPerPrint,
     costCents,
     priceCents,
     profitCents,
@@ -2744,6 +3420,39 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, JobRow> {
     } else if (isInserting) {
       context.missing(_taxBpMeta);
     }
+    if (data.containsKey('channel_id')) {
+      context.handle(
+        _channelIdMeta,
+        channelId.isAcceptableOrUnknown(data['channel_id']!, _channelIdMeta),
+      );
+    }
+    if (data.containsKey('channel_name')) {
+      context.handle(
+        _channelNameMeta,
+        channelName.isAcceptableOrUnknown(
+          data['channel_name']!,
+          _channelNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('marketplace_fixed_cents')) {
+      context.handle(
+        _marketplaceFixedCentsMeta,
+        marketplaceFixedCents.isAcceptableOrUnknown(
+          data['marketplace_fixed_cents']!,
+          _marketplaceFixedCentsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('units_per_print')) {
+      context.handle(
+        _unitsPerPrintMeta,
+        unitsPerPrint.isAcceptableOrUnknown(
+          data['units_per_print']!,
+          _unitsPerPrintMeta,
+        ),
+      );
+    }
     if (data.containsKey('cost_cents')) {
       context.handle(
         _costCentsMeta,
@@ -2907,6 +3616,22 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, JobRow> {
           data['${effectivePrefix}price_rounding'],
         )!,
       ),
+      channelId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}channel_id'],
+      ),
+      channelName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}channel_name'],
+      ),
+      marketplaceFixedCents: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}marketplace_fixed_cents'],
+      )!,
+      unitsPerPrint: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}units_per_print'],
+      )!,
       costCents: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}cost_cents'],
@@ -2977,6 +3702,16 @@ class JobRow extends DataClass implements Insertable<JobRow> {
   final int taxBp;
   final PriceRounding priceRounding;
 
+  /// v3: sales channel used for the fees (snapshot of name and fixed fee;
+  /// [marketplaceFeeBp] holds the percentage of the tier applied).
+  final int? channelId;
+  final String? channelName;
+  final int marketplaceFixedCents;
+
+  /// v3: parts printed together; filament lines and [printSeconds] are per
+  /// part, so `weight × quantity` is what leaves the stock.
+  final int unitsPerPrint;
+
   /// Results per unit.
   final int costCents;
   final int priceCents;
@@ -3012,6 +3747,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
     required this.marketplaceFeeBp,
     required this.taxBp,
     required this.priceRounding,
+    this.channelId,
+    this.channelName,
+    required this.marketplaceFixedCents,
+    required this.unitsPerPrint,
     required this.costCents,
     required this.priceCents,
     required this.profitCents,
@@ -3065,6 +3804,14 @@ class JobRow extends DataClass implements Insertable<JobRow> {
         $JobsTable.$converterpriceRounding.toSql(priceRounding),
       );
     }
+    if (!nullToAbsent || channelId != null) {
+      map['channel_id'] = Variable<int>(channelId);
+    }
+    if (!nullToAbsent || channelName != null) {
+      map['channel_name'] = Variable<String>(channelName);
+    }
+    map['marketplace_fixed_cents'] = Variable<int>(marketplaceFixedCents);
+    map['units_per_print'] = Variable<int>(unitsPerPrint);
     map['cost_cents'] = Variable<int>(costCents);
     map['price_cents'] = Variable<int>(priceCents);
     map['profit_cents'] = Variable<int>(profitCents);
@@ -3115,6 +3862,14 @@ class JobRow extends DataClass implements Insertable<JobRow> {
       marketplaceFeeBp: Value(marketplaceFeeBp),
       taxBp: Value(taxBp),
       priceRounding: Value(priceRounding),
+      channelId: channelId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(channelId),
+      channelName: channelName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(channelName),
+      marketplaceFixedCents: Value(marketplaceFixedCents),
+      unitsPerPrint: Value(unitsPerPrint),
       costCents: Value(costCents),
       priceCents: Value(priceCents),
       profitCents: Value(profitCents),
@@ -3165,6 +3920,12 @@ class JobRow extends DataClass implements Insertable<JobRow> {
       priceRounding: $JobsTable.$converterpriceRounding.fromJson(
         serializer.fromJson<String>(json['priceRounding']),
       ),
+      channelId: serializer.fromJson<int?>(json['channelId']),
+      channelName: serializer.fromJson<String?>(json['channelName']),
+      marketplaceFixedCents: serializer.fromJson<int>(
+        json['marketplaceFixedCents'],
+      ),
+      unitsPerPrint: serializer.fromJson<int>(json['unitsPerPrint']),
       costCents: serializer.fromJson<int>(json['costCents']),
       priceCents: serializer.fromJson<int>(json['priceCents']),
       profitCents: serializer.fromJson<int>(json['profitCents']),
@@ -3208,6 +3969,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
       'priceRounding': serializer.toJson<String>(
         $JobsTable.$converterpriceRounding.toJson(priceRounding),
       ),
+      'channelId': serializer.toJson<int?>(channelId),
+      'channelName': serializer.toJson<String?>(channelName),
+      'marketplaceFixedCents': serializer.toJson<int>(marketplaceFixedCents),
+      'unitsPerPrint': serializer.toJson<int>(unitsPerPrint),
       'costCents': serializer.toJson<int>(costCents),
       'priceCents': serializer.toJson<int>(priceCents),
       'profitCents': serializer.toJson<int>(profitCents),
@@ -3243,6 +4008,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
     int? marketplaceFeeBp,
     int? taxBp,
     PriceRounding? priceRounding,
+    Value<int?> channelId = const Value.absent(),
+    Value<String?> channelName = const Value.absent(),
+    int? marketplaceFixedCents,
+    int? unitsPerPrint,
     int? costCents,
     int? priceCents,
     int? profitCents,
@@ -3276,6 +4045,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
     marketplaceFeeBp: marketplaceFeeBp ?? this.marketplaceFeeBp,
     taxBp: taxBp ?? this.taxBp,
     priceRounding: priceRounding ?? this.priceRounding,
+    channelId: channelId.present ? channelId.value : this.channelId,
+    channelName: channelName.present ? channelName.value : this.channelName,
+    marketplaceFixedCents: marketplaceFixedCents ?? this.marketplaceFixedCents,
+    unitsPerPrint: unitsPerPrint ?? this.unitsPerPrint,
     costCents: costCents ?? this.costCents,
     priceCents: priceCents ?? this.priceCents,
     profitCents: profitCents ?? this.profitCents,
@@ -3332,6 +4105,16 @@ class JobRow extends DataClass implements Insertable<JobRow> {
       priceRounding: data.priceRounding.present
           ? data.priceRounding.value
           : this.priceRounding,
+      channelId: data.channelId.present ? data.channelId.value : this.channelId,
+      channelName: data.channelName.present
+          ? data.channelName.value
+          : this.channelName,
+      marketplaceFixedCents: data.marketplaceFixedCents.present
+          ? data.marketplaceFixedCents.value
+          : this.marketplaceFixedCents,
+      unitsPerPrint: data.unitsPerPrint.present
+          ? data.unitsPerPrint.value
+          : this.unitsPerPrint,
       costCents: data.costCents.present ? data.costCents.value : this.costCents,
       priceCents: data.priceCents.present
           ? data.priceCents.value
@@ -3377,6 +4160,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
           ..write('marketplaceFeeBp: $marketplaceFeeBp, ')
           ..write('taxBp: $taxBp, ')
           ..write('priceRounding: $priceRounding, ')
+          ..write('channelId: $channelId, ')
+          ..write('channelName: $channelName, ')
+          ..write('marketplaceFixedCents: $marketplaceFixedCents, ')
+          ..write('unitsPerPrint: $unitsPerPrint, ')
           ..write('costCents: $costCents, ')
           ..write('priceCents: $priceCents, ')
           ..write('profitCents: $profitCents, ')
@@ -3414,6 +4201,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
     marketplaceFeeBp,
     taxBp,
     priceRounding,
+    channelId,
+    channelName,
+    marketplaceFixedCents,
+    unitsPerPrint,
     costCents,
     priceCents,
     profitCents,
@@ -3450,6 +4241,10 @@ class JobRow extends DataClass implements Insertable<JobRow> {
           other.marketplaceFeeBp == this.marketplaceFeeBp &&
           other.taxBp == this.taxBp &&
           other.priceRounding == this.priceRounding &&
+          other.channelId == this.channelId &&
+          other.channelName == this.channelName &&
+          other.marketplaceFixedCents == this.marketplaceFixedCents &&
+          other.unitsPerPrint == this.unitsPerPrint &&
           other.costCents == this.costCents &&
           other.priceCents == this.priceCents &&
           other.profitCents == this.profitCents &&
@@ -3484,6 +4279,10 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
   final Value<int> marketplaceFeeBp;
   final Value<int> taxBp;
   final Value<PriceRounding> priceRounding;
+  final Value<int?> channelId;
+  final Value<String?> channelName;
+  final Value<int> marketplaceFixedCents;
+  final Value<int> unitsPerPrint;
   final Value<int> costCents;
   final Value<int> priceCents;
   final Value<int> profitCents;
@@ -3516,6 +4315,10 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
     this.marketplaceFeeBp = const Value.absent(),
     this.taxBp = const Value.absent(),
     this.priceRounding = const Value.absent(),
+    this.channelId = const Value.absent(),
+    this.channelName = const Value.absent(),
+    this.marketplaceFixedCents = const Value.absent(),
+    this.unitsPerPrint = const Value.absent(),
     this.costCents = const Value.absent(),
     this.priceCents = const Value.absent(),
     this.profitCents = const Value.absent(),
@@ -3549,6 +4352,10 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
     required int marketplaceFeeBp,
     required int taxBp,
     required PriceRounding priceRounding,
+    this.channelId = const Value.absent(),
+    this.channelName = const Value.absent(),
+    this.marketplaceFixedCents = const Value.absent(),
+    this.unitsPerPrint = const Value.absent(),
     required int costCents,
     required int priceCents,
     required int profitCents,
@@ -3597,6 +4404,10 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
     Expression<int>? marketplaceFeeBp,
     Expression<int>? taxBp,
     Expression<String>? priceRounding,
+    Expression<int>? channelId,
+    Expression<String>? channelName,
+    Expression<int>? marketplaceFixedCents,
+    Expression<int>? unitsPerPrint,
     Expression<int>? costCents,
     Expression<int>? priceCents,
     Expression<int>? profitCents,
@@ -3632,6 +4443,11 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
       if (marketplaceFeeBp != null) 'marketplace_fee_bp': marketplaceFeeBp,
       if (taxBp != null) 'tax_bp': taxBp,
       if (priceRounding != null) 'price_rounding': priceRounding,
+      if (channelId != null) 'channel_id': channelId,
+      if (channelName != null) 'channel_name': channelName,
+      if (marketplaceFixedCents != null)
+        'marketplace_fixed_cents': marketplaceFixedCents,
+      if (unitsPerPrint != null) 'units_per_print': unitsPerPrint,
       if (costCents != null) 'cost_cents': costCents,
       if (priceCents != null) 'price_cents': priceCents,
       if (profitCents != null) 'profit_cents': profitCents,
@@ -3667,6 +4483,10 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
     Value<int>? marketplaceFeeBp,
     Value<int>? taxBp,
     Value<PriceRounding>? priceRounding,
+    Value<int?>? channelId,
+    Value<String?>? channelName,
+    Value<int>? marketplaceFixedCents,
+    Value<int>? unitsPerPrint,
     Value<int>? costCents,
     Value<int>? priceCents,
     Value<int>? profitCents,
@@ -3701,6 +4521,11 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
       marketplaceFeeBp: marketplaceFeeBp ?? this.marketplaceFeeBp,
       taxBp: taxBp ?? this.taxBp,
       priceRounding: priceRounding ?? this.priceRounding,
+      channelId: channelId ?? this.channelId,
+      channelName: channelName ?? this.channelName,
+      marketplaceFixedCents:
+          marketplaceFixedCents ?? this.marketplaceFixedCents,
+      unitsPerPrint: unitsPerPrint ?? this.unitsPerPrint,
       costCents: costCents ?? this.costCents,
       priceCents: priceCents ?? this.priceCents,
       profitCents: profitCents ?? this.profitCents,
@@ -3792,6 +4617,20 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
         $JobsTable.$converterpriceRounding.toSql(priceRounding.value),
       );
     }
+    if (channelId.present) {
+      map['channel_id'] = Variable<int>(channelId.value);
+    }
+    if (channelName.present) {
+      map['channel_name'] = Variable<String>(channelName.value);
+    }
+    if (marketplaceFixedCents.present) {
+      map['marketplace_fixed_cents'] = Variable<int>(
+        marketplaceFixedCents.value,
+      );
+    }
+    if (unitsPerPrint.present) {
+      map['units_per_print'] = Variable<int>(unitsPerPrint.value);
+    }
     if (costCents.present) {
       map['cost_cents'] = Variable<int>(costCents.value);
     }
@@ -3843,6 +4682,10 @@ class JobsCompanion extends UpdateCompanion<JobRow> {
           ..write('marketplaceFeeBp: $marketplaceFeeBp, ')
           ..write('taxBp: $taxBp, ')
           ..write('priceRounding: $priceRounding, ')
+          ..write('channelId: $channelId, ')
+          ..write('channelName: $channelName, ')
+          ..write('marketplaceFixedCents: $marketplaceFixedCents, ')
+          ..write('unitsPerPrint: $unitsPerPrint, ')
           ..write('costCents: $costCents, ')
           ..write('priceCents: $priceCents, ')
           ..write('profitCents: $profitCents, ')
@@ -4781,6 +5624,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FilamentsTable filaments = $FilamentsTable(this);
   late final $PrintersTable printers = $PrintersTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $SalesChannelsTable salesChannels = $SalesChannelsTable(this);
   late final $JobsTable jobs = $JobsTable(this);
   late final $JobFilamentsTable jobFilaments = $JobFilamentsTable(this);
   late final $PrinterConnectionsTable printerConnections =
@@ -4793,6 +5637,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     filaments,
     printers,
     appSettings,
+    salesChannels,
     jobs,
     jobFilaments,
     printerConnections,
@@ -4802,6 +5647,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'printers',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('jobs', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'sales_channels',
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('jobs', kind: UpdateKind.update)],
@@ -5718,6 +6570,8 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<String> shopContact,
       Value<Uint8List?> shopLogo,
       Value<bool> printerModuleEnabled,
+      Value<bool> onboardingDone,
+      Value<int?> defaultChannelId,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
     AppSettingsCompanion Function({
@@ -5738,6 +6592,8 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<String> shopContact,
       Value<Uint8List?> shopLogo,
       Value<bool> printerModuleEnabled,
+      Value<bool> onboardingDone,
+      Value<int?> defaultChannelId,
     });
 
 class $$AppSettingsTableFilterComposer
@@ -5832,6 +6688,16 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<bool> get printerModuleEnabled => $composableBuilder(
     column: $table.printerModuleEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get onboardingDone => $composableBuilder(
+    column: $table.onboardingDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get defaultChannelId => $composableBuilder(
+    column: $table.defaultChannelId,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5929,6 +6795,16 @@ class $$AppSettingsTableOrderingComposer
     column: $table.printerModuleEnabled,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get onboardingDone => $composableBuilder(
+    column: $table.onboardingDone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get defaultChannelId => $composableBuilder(
+    column: $table.defaultChannelId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableAnnotationComposer
@@ -6013,6 +6889,16 @@ class $$AppSettingsTableAnnotationComposer
     column: $table.printerModuleEnabled,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get onboardingDone => $composableBuilder(
+    column: $table.onboardingDone,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get defaultChannelId => $composableBuilder(
+    column: $table.defaultChannelId,
+    builder: (column) => column,
+  );
 }
 
 class $$AppSettingsTableTableManager
@@ -6063,6 +6949,8 @@ class $$AppSettingsTableTableManager
                 Value<String> shopContact = const Value.absent(),
                 Value<Uint8List?> shopLogo = const Value.absent(),
                 Value<bool> printerModuleEnabled = const Value.absent(),
+                Value<bool> onboardingDone = const Value.absent(),
+                Value<int?> defaultChannelId = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
                 currencyCode: currencyCode,
@@ -6081,6 +6969,8 @@ class $$AppSettingsTableTableManager
                 shopContact: shopContact,
                 shopLogo: shopLogo,
                 printerModuleEnabled: printerModuleEnabled,
+                onboardingDone: onboardingDone,
+                defaultChannelId: defaultChannelId,
               ),
           createCompanionCallback:
               ({
@@ -6101,6 +6991,8 @@ class $$AppSettingsTableTableManager
                 Value<String> shopContact = const Value.absent(),
                 Value<Uint8List?> shopLogo = const Value.absent(),
                 Value<bool> printerModuleEnabled = const Value.absent(),
+                Value<bool> onboardingDone = const Value.absent(),
+                Value<int?> defaultChannelId = const Value.absent(),
               }) => AppSettingsCompanion.insert(
                 id: id,
                 currencyCode: currencyCode,
@@ -6119,6 +7011,8 @@ class $$AppSettingsTableTableManager
                 shopContact: shopContact,
                 shopLogo: shopLogo,
                 printerModuleEnabled: printerModuleEnabled,
+                onboardingDone: onboardingDone,
+                defaultChannelId: defaultChannelId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6154,6 +7048,366 @@ typedef $$AppSettingsTableProcessedTableManager =
       SettingsRow,
       PrefetchHooks Function()
     >;
+typedef $$SalesChannelsTableCreateCompanionBuilder =
+    SalesChannelsCompanion Function({
+      Value<int> id,
+      required String name,
+      required List<FeeTier> tiers,
+      Value<bool> isExample,
+      Value<String?> infoUrl,
+      Value<int> sortOrder,
+      Value<bool> archived,
+      Value<DateTime> createdAt,
+    });
+typedef $$SalesChannelsTableUpdateCompanionBuilder =
+    SalesChannelsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<List<FeeTier>> tiers,
+      Value<bool> isExample,
+      Value<String?> infoUrl,
+      Value<int> sortOrder,
+      Value<bool> archived,
+      Value<DateTime> createdAt,
+    });
+
+final class $$SalesChannelsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $SalesChannelsTable, SalesChannelRow> {
+  $$SalesChannelsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$JobsTable, List<JobRow>> _jobsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.jobs,
+    aliasName: 'sales_channels__id__jobs__channel_id',
+  );
+
+  $$JobsTableProcessedTableManager get jobsRefs {
+    final manager = $$JobsTableTableManager(
+      $_db,
+      $_db.jobs,
+    ).filter((f) => f.channelId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_jobsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SalesChannelsTableFilterComposer
+    extends Composer<_$AppDatabase, $SalesChannelsTable> {
+  $$SalesChannelsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<FeeTier>, List<FeeTier>, String>
+  get tiers => $composableBuilder(
+    column: $table.tiers,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<bool> get isExample => $composableBuilder(
+    column: $table.isExample,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get infoUrl => $composableBuilder(
+    column: $table.infoUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> jobsRefs(
+    Expression<bool> Function($$JobsTableFilterComposer f) f,
+  ) {
+    final $$JobsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.jobs,
+      getReferencedColumn: (t) => t.channelId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobsTableFilterComposer(
+            $db: $db,
+            $table: $db.jobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SalesChannelsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SalesChannelsTable> {
+  $$SalesChannelsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tiers => $composableBuilder(
+    column: $table.tiers,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isExample => $composableBuilder(
+    column: $table.isExample,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get infoUrl => $composableBuilder(
+    column: $table.infoUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SalesChannelsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SalesChannelsTable> {
+  $$SalesChannelsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<FeeTier>, String> get tiers =>
+      $composableBuilder(column: $table.tiers, builder: (column) => column);
+
+  GeneratedColumn<bool> get isExample =>
+      $composableBuilder(column: $table.isExample, builder: (column) => column);
+
+  GeneratedColumn<String> get infoUrl =>
+      $composableBuilder(column: $table.infoUrl, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get archived =>
+      $composableBuilder(column: $table.archived, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> jobsRefs<T extends Object>(
+    Expression<T> Function($$JobsTableAnnotationComposer a) f,
+  ) {
+    final $$JobsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.jobs,
+      getReferencedColumn: (t) => t.channelId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$JobsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.jobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SalesChannelsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SalesChannelsTable,
+          SalesChannelRow,
+          $$SalesChannelsTableFilterComposer,
+          $$SalesChannelsTableOrderingComposer,
+          $$SalesChannelsTableAnnotationComposer,
+          $$SalesChannelsTableCreateCompanionBuilder,
+          $$SalesChannelsTableUpdateCompanionBuilder,
+          (SalesChannelRow, $$SalesChannelsTableReferences),
+          SalesChannelRow,
+          PrefetchHooks Function({bool jobsRefs})
+        > {
+  $$SalesChannelsTableTableManager(_$AppDatabase db, $SalesChannelsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SalesChannelsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SalesChannelsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SalesChannelsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<List<FeeTier>> tiers = const Value.absent(),
+                Value<bool> isExample = const Value.absent(),
+                Value<String?> infoUrl = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> archived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => SalesChannelsCompanion(
+                id: id,
+                name: name,
+                tiers: tiers,
+                isExample: isExample,
+                infoUrl: infoUrl,
+                sortOrder: sortOrder,
+                archived: archived,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required List<FeeTier> tiers,
+                Value<bool> isExample = const Value.absent(),
+                Value<String?> infoUrl = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> archived = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => SalesChannelsCompanion.insert(
+                id: id,
+                name: name,
+                tiers: tiers,
+                isExample: isExample,
+                infoUrl: infoUrl,
+                sortOrder: sortOrder,
+                archived: archived,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SalesChannelsTable, SalesChannelRow>(table),
+                  $$SalesChannelsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({jobsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (jobsRefs) db.jobs],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (jobsRefs)
+                    await $_getPrefetchedDataByColumns<
+                      SalesChannelRow,
+                      $SalesChannelsTable,
+                      JobRow,
+                      $JobsTable
+                    >(
+                      currentTable: table,
+                      referencedTable: $$SalesChannelsTableReferences
+                          ._jobsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$SalesChannelsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).jobsRefs,
+                      currentColumn: 'id',
+                      referencedColumn: 'channel_id',
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SalesChannelsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SalesChannelsTable,
+      SalesChannelRow,
+      $$SalesChannelsTableFilterComposer,
+      $$SalesChannelsTableOrderingComposer,
+      $$SalesChannelsTableAnnotationComposer,
+      $$SalesChannelsTableCreateCompanionBuilder,
+      $$SalesChannelsTableUpdateCompanionBuilder,
+      (SalesChannelRow, $$SalesChannelsTableReferences),
+      SalesChannelRow,
+      PrefetchHooks Function({bool jobsRefs})
+    >;
 typedef $$JobsTableCreateCompanionBuilder = JobsCompanion Function({
   Value<int> id,
   required String name,
@@ -6179,6 +7433,10 @@ typedef $$JobsTableCreateCompanionBuilder = JobsCompanion Function({
   required int marketplaceFeeBp,
   required int taxBp,
   required PriceRounding priceRounding,
+  Value<int?> channelId,
+  Value<String?> channelName,
+  Value<int> marketplaceFixedCents,
+  Value<int> unitsPerPrint,
   required int costCents,
   required int priceCents,
   required int profitCents,
@@ -6212,6 +7470,10 @@ typedef $$JobsTableUpdateCompanionBuilder = JobsCompanion Function({
   Value<int> marketplaceFeeBp,
   Value<int> taxBp,
   Value<PriceRounding> priceRounding,
+  Value<int?> channelId,
+  Value<String?> channelName,
+  Value<int> marketplaceFixedCents,
+  Value<int> unitsPerPrint,
   Value<int> costCents,
   Value<int> priceCents,
   Value<int> profitCents,
@@ -6236,6 +7498,23 @@ final class $$JobsTableReferences
       $_db.printers,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_printerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $SalesChannelsTable _channelIdTable(_$AppDatabase db) =>
+      db.salesChannels.createAlias('jobs__channel_id__sales_channels__id');
+
+  $$SalesChannelsTableProcessedTableManager? get channelId {
+    final $_column = $_itemColumn<int>('channel_id');
+    if ($_column == null) return null;
+    final manager = $$SalesChannelsTableTableManager(
+      $_db,
+      $_db.salesChannels,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_channelIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -6386,6 +7665,21 @@ class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
+  ColumnFilters<String> get channelName => $composableBuilder(
+    column: $table.channelName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get marketplaceFixedCents => $composableBuilder(
+    column: $table.marketplaceFixedCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get unitsPerPrint => $composableBuilder(
+    column: $table.unitsPerPrint,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get costCents => $composableBuilder(
     column: $table.costCents,
     builder: (column) => ColumnFilters(column),
@@ -6435,6 +7729,29 @@ class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
           }) => $$PrintersTableFilterComposer(
             $db: $db,
             $table: $db.printers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SalesChannelsTableFilterComposer get channelId {
+    final $$SalesChannelsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.channelId,
+      referencedTable: $db.salesChannels,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SalesChannelsTableFilterComposer(
+            $db: $db,
+            $table: $db.salesChannels,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6593,6 +7910,21 @@ class $$JobsTableOrderingComposer extends Composer<_$AppDatabase, $JobsTable> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get channelName => $composableBuilder(
+    column: $table.channelName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get marketplaceFixedCents => $composableBuilder(
+    column: $table.marketplaceFixedCents,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get unitsPerPrint => $composableBuilder(
+    column: $table.unitsPerPrint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get costCents => $composableBuilder(
     column: $table.costCents,
     builder: (column) => ColumnOrderings(column),
@@ -6642,6 +7974,29 @@ class $$JobsTableOrderingComposer extends Composer<_$AppDatabase, $JobsTable> {
           }) => $$PrintersTableOrderingComposer(
             $db: $db,
             $table: $db.printers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SalesChannelsTableOrderingComposer get channelId {
+    final $$SalesChannelsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.channelId,
+      referencedTable: $db.salesChannels,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SalesChannelsTableOrderingComposer(
+            $db: $db,
+            $table: $db.salesChannels,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6753,6 +8108,21 @@ class $$JobsTableAnnotationComposer
         builder: (column) => column,
       );
 
+  GeneratedColumn<String> get channelName => $composableBuilder(
+    column: $table.channelName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get marketplaceFixedCents => $composableBuilder(
+    column: $table.marketplaceFixedCents,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get unitsPerPrint => $composableBuilder(
+    column: $table.unitsPerPrint,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get costCents =>
       $composableBuilder(column: $table.costCents, builder: (column) => column);
 
@@ -6805,6 +8175,29 @@ class $$JobsTableAnnotationComposer
     return composer;
   }
 
+  $$SalesChannelsTableAnnotationComposer get channelId {
+    final $$SalesChannelsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.channelId,
+      referencedTable: $db.salesChannels,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SalesChannelsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.salesChannels,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   Expression<T> jobFilamentsRefs<T extends Object>(
     Expression<T> Function($$JobFilamentsTableAnnotationComposer a) f,
   ) {
@@ -6844,7 +8237,11 @@ class $$JobsTableTableManager
           $$JobsTableUpdateCompanionBuilder,
           (JobRow, $$JobsTableReferences),
           JobRow,
-          PrefetchHooks Function({bool printerId, bool jobFilamentsRefs})
+          PrefetchHooks Function({
+            bool printerId,
+            bool channelId,
+            bool jobFilamentsRefs,
+          })
         > {
   $$JobsTableTableManager(_$AppDatabase db, $JobsTable table)
     : super(
@@ -6883,6 +8280,10 @@ class $$JobsTableTableManager
                 Value<int> marketplaceFeeBp = const Value.absent(),
                 Value<int> taxBp = const Value.absent(),
                 Value<PriceRounding> priceRounding = const Value.absent(),
+                Value<int?> channelId = const Value.absent(),
+                Value<String?> channelName = const Value.absent(),
+                Value<int> marketplaceFixedCents = const Value.absent(),
+                Value<int> unitsPerPrint = const Value.absent(),
                 Value<int> costCents = const Value.absent(),
                 Value<int> priceCents = const Value.absent(),
                 Value<int> profitCents = const Value.absent(),
@@ -6915,6 +8316,10 @@ class $$JobsTableTableManager
                 marketplaceFeeBp: marketplaceFeeBp,
                 taxBp: taxBp,
                 priceRounding: priceRounding,
+                channelId: channelId,
+                channelName: channelName,
+                marketplaceFixedCents: marketplaceFixedCents,
+                unitsPerPrint: unitsPerPrint,
                 costCents: costCents,
                 priceCents: priceCents,
                 profitCents: profitCents,
@@ -6949,6 +8354,10 @@ class $$JobsTableTableManager
                 required int marketplaceFeeBp,
                 required int taxBp,
                 required PriceRounding priceRounding,
+                Value<int?> channelId = const Value.absent(),
+                Value<String?> channelName = const Value.absent(),
+                Value<int> marketplaceFixedCents = const Value.absent(),
+                Value<int> unitsPerPrint = const Value.absent(),
                 required int costCents,
                 required int priceCents,
                 required int profitCents,
@@ -6981,6 +8390,10 @@ class $$JobsTableTableManager
                 marketplaceFeeBp: marketplaceFeeBp,
                 taxBp: taxBp,
                 priceRounding: priceRounding,
+                channelId: channelId,
+                channelName: channelName,
+                marketplaceFixedCents: marketplaceFixedCents,
+                unitsPerPrint: unitsPerPrint,
                 costCents: costCents,
                 priceCents: priceCents,
                 profitCents: profitCents,
@@ -6998,7 +8411,11 @@ class $$JobsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({printerId = false, jobFilamentsRefs = false}) {
+              ({
+                printerId = false,
+                channelId = false,
+                jobFilamentsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
@@ -7028,6 +8445,17 @@ class $$JobsTableTableManager
                                 ._printerIdTable(db),
                             referencedColumn: $$JobsTableReferences
                                 ._printerIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (channelId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.channelId,
+                            referencedTable: $$JobsTableReferences
+                                ._channelIdTable(db),
+                            referencedColumn: $$JobsTableReferences
+                                ._channelIdTable(db)
                                 .id,
                           ) as T;
                         }
@@ -7075,7 +8503,11 @@ typedef $$JobsTableProcessedTableManager =
       $$JobsTableUpdateCompanionBuilder,
       (JobRow, $$JobsTableReferences),
       JobRow,
-      PrefetchHooks Function({bool printerId, bool jobFilamentsRefs})
+      PrefetchHooks Function({
+        bool printerId,
+        bool channelId,
+        bool jobFilamentsRefs,
+      })
     >;
 typedef $$JobFilamentsTableCreateCompanionBuilder =
     JobFilamentsCompanion Function({
@@ -7885,6 +9317,8 @@ class $AppDatabaseManager {
       $$PrintersTableTableManager(_db, _db.printers);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$SalesChannelsTableTableManager get salesChannels =>
+      $$SalesChannelsTableTableManager(_db, _db.salesChannels);
   $$JobsTableTableManager get jobs => $$JobsTableTableManager(_db, _db.jobs);
   $$JobFilamentsTableTableManager get jobFilaments =>
       $$JobFilamentsTableTableManager(_db, _db.jobFilaments);

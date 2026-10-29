@@ -379,7 +379,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calcPrinter => 'Printer';
 
   @override
-  String get calcNoPrinter => 'No printer (ignores power and wear)';
+  String get calcNoPrinter => 'No printer';
 
   @override
   String get calcHours => 'Hours';
@@ -388,10 +388,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calcMinutes => 'Minutes';
 
   @override
-  String get calcPostProcess => 'Post-processing (min)';
+  String get calcPostProcess => 'Post-processing per part (min)';
 
   @override
-  String get calcPercentsSection => 'Margin and reserves';
+  String get calcPercentsSection => 'Sale and margin';
 
   @override
   String get calcWaste => 'Waste/purge (%)';
@@ -403,7 +403,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calcMargin => 'Profit margin (%)';
 
   @override
-  String get calcAdvanced => 'Costs and fees for this part';
+  String get calcAdvanced => 'Costs for this part';
 
   @override
   String get calcAdvancedSubtitle =>
@@ -450,7 +450,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get breakdownFailure => 'Failure reserve';
 
   @override
-  String get breakdownFees => 'Marketplace fee';
+  String get breakdownFees => 'Channel fees';
 
   @override
   String get breakdownTaxes => 'Taxes';
@@ -490,7 +490,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpPrinterField =>
-      'Printer used. Defines power cost and wear per hour.';
+      'Printer used. Defines power cost and wear per hour. With no printer, power and wear are left out of the price.';
 
   @override
   String get helpPrintTime => 'Estimated print time shown by your slicer.';
@@ -690,7 +690,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashAvgMargin => 'Average margin';
 
   @override
-  String get dashJobsSold => 'Parts sold';
+  String get dashJobsSold => 'Parts produced';
 
   @override
   String get dashTopJobs => 'Most profitable parts';
@@ -1042,4 +1042,228 @@ class AppLocalizationsEn extends AppLocalizations {
   String errUnknownPrinter(String detail) {
     return 'Could not connect. $detail';
   }
+
+  @override
+  String get calcUnits => 'Parts in this print';
+
+  @override
+  String get helpUnits =>
+      'How many parts come out of the same plate. Grams and time are for the whole print (as the slicer shows); the app splits them between the parts. Post-processing, packaging and fees are per part.';
+
+  @override
+  String get calcChannel => 'Where you\'ll sell';
+
+  @override
+  String get helpChannel =>
+      'Each channel charges different fees, and they go into the price. Adjust them in More → Sales channels.';
+
+  @override
+  String calcChannelFee(String fee) {
+    return 'Channel fee at this price: $fee';
+  }
+
+  @override
+  String calcBatchTotal(int count, String price) {
+    return 'Total for $count parts: $price';
+  }
+
+  @override
+  String get calcPricePerPart => 'Suggested price per part';
+
+  @override
+  String get calcOtherChannels => 'Same margin on other channels';
+
+  @override
+  String calcOtherChannelProfit(String profit) {
+    return 'profit $profit';
+  }
+
+  @override
+  String get calcSeeDetails => 'See details';
+
+  @override
+  String get calcFixRequired => 'Fill in the marked fields';
+
+  @override
+  String get channels => 'Sales channels';
+
+  @override
+  String get channelNew => 'New channel';
+
+  @override
+  String get channelEdit => 'Edit channel';
+
+  @override
+  String get channelName => 'Channel name';
+
+  @override
+  String get helpChannelName => 'E.g.: Etsy, eBay, Instagram, craft fair.';
+
+  @override
+  String get channelExampleWarning =>
+      'These are example fees (Oct 2026) taken from seller guides, and they may be outdated. They change with category and account type. To use your real fee:\n1. Tap \"See official fees\" or open your seller dashboard.\n2. Find the commission (%) and the fixed amount per sale for your category.\n3. Fix the ranges below and tap Save. The notice goes away once you save.';
+
+  @override
+  String get channelTiers => 'Fees by price range';
+
+  @override
+  String get helpChannelTiers =>
+      'Some marketplaces charge different fees depending on the price. E.g.: up to \$79.99, 20% + \$4.50; from \$80, 14% + \$16. If the channel always charges the same, keep a single range. Extra charges go into the range itself: add them to the percentage or the fixed amount.';
+
+  @override
+  String get channelTierFrom => 'From';
+
+  @override
+  String get channelTierPercent => 'Commission';
+
+  @override
+  String get channelTierFixed => 'Fixed per sale';
+
+  @override
+  String get helpChannelPercent =>
+      'Share of the sale price the channel keeps. If you join a program that charges an extra % of the sale, add it here. E.g.: 14% commission + 6% program = 20.';
+
+  @override
+  String get helpChannelFixed =>
+      'Amount charged on each part sold, on top of the commission. If the marketplace charges extras per item, add them here. E.g.: \$4.50 fixed + \$3.00 extra for individual accounts = 7.50.';
+
+  @override
+  String get channelOfficialFees => 'See official fees';
+
+  @override
+  String get channelInfoUrl => 'Fees link (optional)';
+
+  @override
+  String get helpChannelInfoUrl =>
+      'Page where the channel publishes its current fees. It\'s saved here so you can check when they change.';
+
+  @override
+  String get channelInfoUrlInvalid => 'Use a link starting with https://';
+
+  @override
+  String get openLinkFailed => 'Couldn\'t open the link';
+
+  @override
+  String get calcExampleFees =>
+      'This channel uses example fees. Tap to check them.';
+
+  @override
+  String get channelAddTier => 'Add range';
+
+  @override
+  String channelTierSummary(String price, String fee) {
+    return 'from $price: $fee';
+  }
+
+  @override
+  String get channelNoFees => 'No fees';
+
+  @override
+  String get channelExampleBadge => 'example fees';
+
+  @override
+  String get channelDuplicateMin => 'Two ranges start at the same price';
+
+  @override
+  String get settingsDefaultChannel => 'Default channel';
+
+  @override
+  String get helpDefaultChannel => 'Channel preselected in the calculator.';
+
+  @override
+  String get obWelcomeTitle => 'Let\'s set up the basics';
+
+  @override
+  String obStep(int n, int total) {
+    return 'Step $n of $total';
+  }
+
+  @override
+  String get obCostsTitle => 'Your costs';
+
+  @override
+  String get obCostsText =>
+      'These values go into every calculation. If you don\'t know one, keep it and adjust later in Settings.';
+
+  @override
+  String get obFilamentTitle => 'Your first filament';
+
+  @override
+  String get obFilamentText =>
+      'Add the filament you use most. You can add others later.';
+
+  @override
+  String get obPrinterTitle => 'Your printer';
+
+  @override
+  String get obPrinterText =>
+      'With your printer, the price includes power and machine wear. You can skip this step.';
+
+  @override
+  String get obChannelTitle => 'Where you sell';
+
+  @override
+  String get obChannelText =>
+      'The channel fees go into the suggested price. You can change it on each calculation.';
+
+  @override
+  String get obSkip => 'Skip';
+
+  @override
+  String get obFinish => 'Start pricing';
+
+  @override
+  String get obPrinterNameHint => 'E.g.: My printer';
+
+  @override
+  String get historyExportCsv => 'Export spreadsheet (CSV)';
+
+  @override
+  String get historyExportEmpty => 'Nothing to export yet';
+
+  @override
+  String get csvDate => 'Date';
+
+  @override
+  String get csvName => 'Part';
+
+  @override
+  String get csvCustomer => 'Customer';
+
+  @override
+  String get csvStatus => 'Status';
+
+  @override
+  String get csvQuantity => 'Quantity';
+
+  @override
+  String get csvChannel => 'Channel';
+
+  @override
+  String get csvUnitPrice => 'Unit price';
+
+  @override
+  String get csvUnitCost => 'Unit cost';
+
+  @override
+  String get csvUnitProfit => 'Unit profit';
+
+  @override
+  String get csvTotalPrice => 'Total';
+
+  @override
+  String get csvTotalProfit => 'Total profit';
+
+  @override
+  String get csvFilamentGrams => 'Total filament (g)';
+
+  @override
+  String get csvFileName => 'parts';
+
+  @override
+  String get archiveChannelConfirm =>
+      'Archive this channel? Saved parts keep the fees they used.';
+
+  @override
+  String get channelKeepOne => 'Keep at least one channel.';
 }

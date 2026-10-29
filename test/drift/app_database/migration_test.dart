@@ -1,6 +1,7 @@
 // dart format width=80
 // ignore_for_file: unused_local_variable, unused_import
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:printcost/data/db/app_database.dart';
@@ -145,5 +146,55 @@ void main() {
         );
       },
     );
+  });
+
+  test('v2 to v3 keeps the old marketplace fee and skips onboarding', () async {
+    final schema = await verifier.schemaAt(2);
+    final raw = schema.rawDatabase;
+    raw.execute(
+      'INSERT INTO app_settings (id, marketplace_fee_bp) VALUES (1, 1200)',
+    );
+    raw.execute(
+      'INSERT INTO jobs (name, status, print_seconds, post_process_minutes, '
+      'kwh_price, labor_hour_cents, packaging_cents, waste_bp, failure_bp, '
+      'margin_bp, marketplace_fee_bp, tax_bp, price_rounding, cost_cents, '
+      "price_cents, profit_cents) VALUES ('Vaso', 'delivered', 3600, 0, 9000, "
+      "2500, 0, 500, 500, 3000, 1200, 0, 'none', 1000, 2000, 500)",
+    );
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 3);
+
+    final settings = await db.select(db.appSettings).getSingle();
+    expect(settings.onboardingDone, isTrue);
+    final channels = await db.select(db.salesChannels).get();
+    expect(channels.map((c) => c.name), contains('Marketplace'));
+    final legacy = channels.singleWhere((c) => c.name == 'Marketplace');
+    expect(settings.defaultChannelId, legacy.id);
+    expect(legacy.tiers.single.feeBp, 1200);
+    expect(channels.where((c) => c.isExample), hasLength(2));
+
+    final job = await db.select(db.jobs).getSingle();
+    expect(job.name, 'Vaso');
+    expect(job.unitsPerPrint, 1);
+    expect(job.marketplaceFixedCents, 0);
+    expect(job.channelId, isNull);
+    await db.close();
+  });
+
+  test('fresh database seeds channels and asks for onboarding', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    final settings = await db.select(db.appSettings).getSingle();
+    expect(settings.onboardingDone, isFalse);
+    final channels = await db.select(db.salesChannels).get();
+    expect(channels, hasLength(3));
+    expect(
+      channels.singleWhere((c) => c.id == settings.defaultChannelId).isExample,
+      isFalse,
+    );
+    // Example fees always point to the official page to check them.
+    for (final c in channels.where((c) => c.isExample)) {
+      expect(c.infoUrl, startsWith('https://'));
+    }
+    await db.close();
   });
 }

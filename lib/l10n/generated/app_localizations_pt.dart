@@ -384,7 +384,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get calcPrinter => 'Impressora';
 
   @override
-  String get calcNoPrinter => 'Sem impressora (ignora energia e desgaste)';
+  String get calcNoPrinter => 'Nenhuma impressora';
 
   @override
   String get calcHours => 'Horas';
@@ -393,10 +393,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get calcMinutes => 'Minutos';
 
   @override
-  String get calcPostProcess => 'Pós-processamento (min)';
+  String get calcPostProcess => 'Pós-processamento por peça (min)';
 
   @override
-  String get calcPercentsSection => 'Margem e reservas';
+  String get calcPercentsSection => 'Venda e margem';
 
   @override
   String get calcWaste => 'Desperdício/purga (%)';
@@ -408,7 +408,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get calcMargin => 'Margem de lucro (%)';
 
   @override
-  String get calcAdvanced => 'Custos e taxas desta peça';
+  String get calcAdvanced => 'Custos desta peça';
 
   @override
   String get calcAdvancedSubtitle =>
@@ -455,7 +455,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get breakdownFailure => 'Reserva para falhas';
 
   @override
-  String get breakdownFees => 'Taxa do marketplace';
+  String get breakdownFees => 'Taxas do canal';
 
   @override
   String get breakdownTaxes => 'Impostos';
@@ -497,7 +497,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get helpPrinterField =>
-      'Impressora usada. Define o gasto de energia e o desgaste por hora.';
+      'Impressora usada. Define o gasto de energia e o desgaste por hora. Sem impressora, energia e desgaste ficam fora do preço.';
 
   @override
   String get helpPrintTime =>
@@ -697,7 +697,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dashAvgMargin => 'Margem média';
 
   @override
-  String get dashJobsSold => 'Peças vendidas';
+  String get dashJobsSold => 'Peças produzidas';
 
   @override
   String get dashTopJobs => 'Peças mais lucrativas';
@@ -1051,4 +1051,229 @@ class AppLocalizationsPt extends AppLocalizations {
   String errUnknownPrinter(String detail) {
     return 'Não foi possível conectar. $detail';
   }
+
+  @override
+  String get calcUnits => 'Peças nesta impressão';
+
+  @override
+  String get helpUnits =>
+      'Quantas peças saem juntas na mesma mesa. Gramas e tempo são da impressão inteira (como o fatiador mostra); o app divide entre as peças. Pós-processamento, embalagem e taxas são por peça.';
+
+  @override
+  String get calcChannel => 'Onde vai vender';
+
+  @override
+  String get helpChannel =>
+      'Cada canal cobra taxas diferentes, e elas entram no preço. Ajuste as taxas em Mais → Canais de venda.';
+
+  @override
+  String calcChannelFee(String fee) {
+    return 'Taxa do canal neste preço: $fee';
+  }
+
+  @override
+  String calcBatchTotal(int count, String price) {
+    return 'Total das $count peças: $price';
+  }
+
+  @override
+  String get calcPricePerPart => 'Preço sugerido por peça';
+
+  @override
+  String get calcOtherChannels => 'Mesma margem em outros canais';
+
+  @override
+  String calcOtherChannelProfit(String profit) {
+    return 'lucro $profit';
+  }
+
+  @override
+  String get calcSeeDetails => 'Ver detalhes';
+
+  @override
+  String get calcFixRequired => 'Preencha os campos marcados';
+
+  @override
+  String get channels => 'Canais de venda';
+
+  @override
+  String get channelNew => 'Novo canal';
+
+  @override
+  String get channelEdit => 'Editar canal';
+
+  @override
+  String get channelName => 'Nome do canal';
+
+  @override
+  String get helpChannelName =>
+      'Ex.: Shopee, Mercado Livre, Elo7, Instagram, feira.';
+
+  @override
+  String get channelExampleWarning =>
+      'Estas são taxas de exemplo (out/2026), tiradas de guias para vendedores, e podem estar desatualizadas. Elas mudam com a categoria e o tipo de conta. Para usar a sua taxa real:\n1. Toque em \"Ver tarifas oficiais\" ou abra o seu painel de vendedor.\n2. Ache a comissão (%) e o valor fixo por venda da sua categoria.\n3. Corrija as faixas abaixo e toque em Salvar. O aviso some depois de salvar.';
+
+  @override
+  String get channelTiers => 'Taxas por faixa de preço';
+
+  @override
+  String get helpChannelTiers =>
+      'Alguns marketplaces cobram taxas diferentes conforme o preço da peça. Ex.: até R\$ 79,99, 20% + R\$ 4,50; a partir de R\$ 80, 14% + R\$ 16. Se o canal cobra sempre igual, deixe uma faixa só. Cobranças extras entram na própria faixa: some ao percentual ou ao fixo.';
+
+  @override
+  String get channelTierFrom => 'A partir de';
+
+  @override
+  String get channelTierPercent => 'Comissão';
+
+  @override
+  String get channelTierFixed => 'Fixo por venda';
+
+  @override
+  String get helpChannelPercent =>
+      'Parte do preço de venda que o canal fica para si. Se você participa de algum programa com taxa extra em % sobre a venda, some aqui. Ex.: comissão de 14% + programa de 6% = 20.';
+
+  @override
+  String get helpChannelFixed =>
+      'Valor cobrado a cada peça vendida, além da comissão. Se o marketplace cobra extras por item, some aqui. Ex.: fixo de R\$ 4,50 + adicional de R\$ 3,00 para conta CPF = 7,50.';
+
+  @override
+  String get channelOfficialFees => 'Ver tarifas oficiais';
+
+  @override
+  String get channelInfoUrl => 'Link das tarifas (opcional)';
+
+  @override
+  String get helpChannelInfoUrl =>
+      'Página onde o canal publica as taxas atuais. Fica salva aqui para você conferir quando elas mudarem.';
+
+  @override
+  String get channelInfoUrlInvalid => 'Use um link que comece com https://';
+
+  @override
+  String get openLinkFailed => 'Não foi possível abrir o link';
+
+  @override
+  String get calcExampleFees =>
+      'Taxas de exemplo neste canal. Toque para conferir.';
+
+  @override
+  String get channelAddTier => 'Adicionar faixa';
+
+  @override
+  String channelTierSummary(String price, String fee) {
+    return 'a partir de $price: $fee';
+  }
+
+  @override
+  String get channelNoFees => 'Sem taxas';
+
+  @override
+  String get channelExampleBadge => 'taxas de exemplo';
+
+  @override
+  String get channelDuplicateMin => 'Duas faixas com o mesmo valor inicial';
+
+  @override
+  String get settingsDefaultChannel => 'Canal padrão';
+
+  @override
+  String get helpDefaultChannel => 'Canal que já vem escolhido na calculadora.';
+
+  @override
+  String get obWelcomeTitle => 'Vamos configurar o básico';
+
+  @override
+  String obStep(int n, int total) {
+    return 'Passo $n de $total';
+  }
+
+  @override
+  String get obCostsTitle => 'Seus custos';
+
+  @override
+  String get obCostsText =>
+      'Esses valores entram em todo cálculo. Se não souber algum, deixe como está e ajuste depois em Configurações.';
+
+  @override
+  String get obFilamentTitle => 'Seu primeiro filamento';
+
+  @override
+  String get obFilamentText =>
+      'Cadastre o filamento que você mais usa. Os outros podem ser cadastrados depois.';
+
+  @override
+  String get obPrinterTitle => 'Sua impressora';
+
+  @override
+  String get obPrinterText =>
+      'Com a impressora cadastrada, o preço inclui a energia e o desgaste da máquina. Se preferir, pule este passo.';
+
+  @override
+  String get obChannelTitle => 'Onde você vende';
+
+  @override
+  String get obChannelText =>
+      'As taxas do canal entram no preço sugerido. Dá para trocar a cada cálculo.';
+
+  @override
+  String get obSkip => 'Pular';
+
+  @override
+  String get obFinish => 'Começar a calcular';
+
+  @override
+  String get obPrinterNameHint => 'Ex.: Minha impressora';
+
+  @override
+  String get historyExportCsv => 'Exportar planilha (CSV)';
+
+  @override
+  String get historyExportEmpty => 'Nada para exportar ainda';
+
+  @override
+  String get csvDate => 'Data';
+
+  @override
+  String get csvName => 'Peça';
+
+  @override
+  String get csvCustomer => 'Cliente';
+
+  @override
+  String get csvStatus => 'Status';
+
+  @override
+  String get csvQuantity => 'Quantidade';
+
+  @override
+  String get csvChannel => 'Canal';
+
+  @override
+  String get csvUnitPrice => 'Preço unitário';
+
+  @override
+  String get csvUnitCost => 'Custo unitário';
+
+  @override
+  String get csvUnitProfit => 'Lucro unitário';
+
+  @override
+  String get csvTotalPrice => 'Total';
+
+  @override
+  String get csvTotalProfit => 'Lucro total';
+
+  @override
+  String get csvFilamentGrams => 'Filamento total (g)';
+
+  @override
+  String get csvFileName => 'pecas';
+
+  @override
+  String get archiveChannelConfirm =>
+      'Arquivar este canal? Peças já salvas continuam com as taxas usadas.';
+
+  @override
+  String get channelKeepOne => 'Mantenha pelo menos um canal.';
 }

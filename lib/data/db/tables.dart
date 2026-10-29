@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/job_status.dart';
 import '../../domain/pricing/price_rounding.dart';
+import 'converters.dart';
 
 /// Units: money in cents, percent in basis points, weight in mg,
 /// time in seconds, kWh price with 4 decimals.
@@ -38,6 +39,25 @@ class Printers extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// Where parts are sold, with the fees charged per sale (v3).
+@DataClassName('SalesChannelRow')
+class SalesChannels extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 60)();
+
+  /// Fee tiers by price, as JSON.
+  TextColumn get tiers => text().map(const FeeTiersConverter())();
+
+  /// Seeded with example fees that the user should check.
+  BoolColumn get isExample => boolean().withDefault(const Constant(false))();
+
+  /// Page where the marketplace publishes its current fees.
+  TextColumn get infoUrl => text().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  BoolColumn get archived => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 /// Single row (id = 1) with global settings.
 @DataClassName('SettingsRow')
 class AppSettings extends Table {
@@ -67,6 +87,13 @@ class AppSettings extends Table {
   BlobColumn get shopLogo => blob().nullable()();
   BoolColumn get printerModuleEnabled =>
       boolean().withDefault(const Constant(false))();
+
+  /// v3: first-run setup finished.
+  BoolColumn get onboardingDone =>
+      boolean().withDefault(const Constant(false))();
+
+  /// v3: channel preselected in the calculator.
+  IntColumn get defaultChannelId => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -107,6 +134,21 @@ class Jobs extends Table {
   IntColumn get marketplaceFeeBp => integer()();
   IntColumn get taxBp => integer()();
   TextColumn get priceRounding => textEnum<PriceRounding>()();
+
+  /// v3: sales channel used for the fees (snapshot of name and fixed fee;
+  /// [marketplaceFeeBp] holds the percentage of the tier applied).
+  IntColumn get channelId => integer().nullable().references(
+    SalesChannels,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get channelName => text().nullable()();
+  IntColumn get marketplaceFixedCents =>
+      integer().withDefault(const Constant(0))();
+
+  /// v3: parts printed together; filament lines and [printSeconds] are per
+  /// part, so `weight × quantity` is what leaves the stock.
+  IntColumn get unitsPerPrint => integer().withDefault(const Constant(1))();
 
   /// Results per unit.
   IntColumn get costCents => integer()();

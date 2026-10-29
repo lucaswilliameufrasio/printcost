@@ -32,6 +32,7 @@ dependencies:
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6
   sqlite3: ^3.8.0
+  url_launcher: ^6.3.3
   xml: ^7.1.0
 
 dev_dependencies:
@@ -40,8 +41,30 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.35.2
   build_runner: ^2.17.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 flutter:
   uses-material-design: true
   generate: true
 
+
+# dart run flutter_launcher_icons && dart run flutter_native_splash:create
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/icon.png
+  remove_alpha_ios: true
+  adaptive_icon_background: "#00796B"
+  adaptive_icon_foreground: assets/icon/icon_foreground.png
+  adaptive_icon_monochrome: assets/icon/icon_foreground.png
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#00796B"
+  image: assets/icon/splash.png
+  android_12:
+    color: "#00796B"
+    image: assets/icon/icon_foreground.png
+  ios: true
+  android: true

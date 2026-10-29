@@ -141,15 +141,15 @@
   "calcGrams": "Gramas",
   "calcPrinterSection": "Impressão",
   "calcPrinter": "Impressora",
-  "calcNoPrinter": "Sem impressora (ignora energia e desgaste)",
+  "calcNoPrinter": "Nenhuma impressora",
   "calcHours": "Horas",
   "calcMinutes": "Minutos",
-  "calcPostProcess": "Pós-processamento (min)",
-  "calcPercentsSection": "Margem e reservas",
+  "calcPostProcess": "Pós-processamento por peça (min)",
+  "calcPercentsSection": "Venda e margem",
   "calcWaste": "Desperdício/purga (%)",
   "calcFailure": "Taxa de falha (%)",
   "calcMargin": "Margem de lucro (%)",
-  "calcAdvanced": "Custos e taxas desta peça",
+  "calcAdvanced": "Custos desta peça",
   "calcAdvancedSubtitle": "Vêm das Configurações. Altere aqui só para esta peça.",
   "calcResultPrice": "Preço sugerido",
   "calcResultCost": "Custo total",
@@ -177,7 +177,7 @@
   "breakdownLabor": "Mão de obra",
   "breakdownPackaging": "Embalagem",
   "breakdownFailure": "Reserva para falhas",
-  "breakdownFees": "Taxa do marketplace",
+  "breakdownFees": "Taxas do canal",
   "breakdownTaxes": "Impostos",
   "breakdownProfit": "Seu lucro",
   "calcSave": "Salvar peça",
@@ -196,7 +196,7 @@
   "calcGoToFilaments": "Cadastrar filamento",
   "calcFillToSee": "Preencha o filamento e o tempo para ver o preço.",
   "helpGrams": "Quantos gramas desse filamento a peça usa. O fatiador (Bambu Studio, Orca...) mostra depois de fatiar. Ou use \"Importar do arquivo\".",
-  "helpPrinterField": "Impressora usada. Define o gasto de energia e o desgaste por hora.",
+  "helpPrinterField": "Impressora usada. Define o gasto de energia e o desgaste por hora. Sem impressora, energia e desgaste ficam fora do preço.",
   "helpPrintTime": "Tempo estimado de impressão mostrado pelo fatiador.",
   "helpPostProcess": "Seu tempo removendo suporte, lixando, pintando, montando e embalando esta peça.",
   "errDeductionsTooHigh": "Margem + taxas + impostos somam {total}. Essa soma precisa ficar abaixo de 100%, senão nenhum preço cobre os descontos. Diminua a margem ou as taxas.",
@@ -308,7 +308,7 @@
   "dashRevenue": "Faturamento",
   "dashProfit": "Lucro",
   "dashAvgMargin": "Margem média",
-  "dashJobsSold": "Peças vendidas",
+  "dashJobsSold": "Peças produzidas",
   "dashTopJobs": "Peças mais lucrativas",
   "dashFilamentUsage": "Filamento mais usado",
   "dashNote": "Conta peças em produção e entregues. Orçamentos ficam de fora.",
@@ -488,5 +488,116 @@
         "type": "String"
       }
     }
-  }
+  },
+  "calcUnits": "Peças nesta impressão",
+  "helpUnits": "Quantas peças saem juntas na mesma mesa. Gramas e tempo são da impressão inteira (como o fatiador mostra); o app divide entre as peças. Pós-processamento, embalagem e taxas são por peça.",
+  "calcChannel": "Onde vai vender",
+  "helpChannel": "Cada canal cobra taxas diferentes, e elas entram no preço. Ajuste as taxas em Mais → Canais de venda.",
+  "calcChannelFee": "Taxa do canal neste preço: {fee}",
+  "@calcChannelFee": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "calcBatchTotal": "Total das {count} peças: {price}",
+  "@calcBatchTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "calcPricePerPart": "Preço sugerido por peça",
+  "calcOtherChannels": "Mesma margem em outros canais",
+  "calcOtherChannelProfit": "lucro {profit}",
+  "@calcOtherChannelProfit": {
+    "placeholders": {
+      "profit": {
+        "type": "String"
+      }
+    }
+  },
+  "calcSeeDetails": "Ver detalhes",
+  "calcFixRequired": "Preencha os campos marcados",
+  "channels": "Canais de venda",
+  "channelNew": "Novo canal",
+  "channelEdit": "Editar canal",
+  "channelName": "Nome do canal",
+  "helpChannelName": "Ex.: Shopee, Mercado Livre, Elo7, Instagram, feira.",
+  "channelExampleWarning": "Estas são taxas de exemplo (out/2026), tiradas de guias para vendedores, e podem estar desatualizadas. Elas mudam com a categoria e o tipo de conta. Para usar a sua taxa real:\n1. Toque em \"Ver tarifas oficiais\" ou abra o seu painel de vendedor.\n2. Ache a comissão (%) e o valor fixo por venda da sua categoria.\n3. Corrija as faixas abaixo e toque em Salvar. O aviso some depois de salvar.",
+  "channelTiers": "Taxas por faixa de preço",
+  "helpChannelTiers": "Alguns marketplaces cobram taxas diferentes conforme o preço da peça. Ex.: até R$ 79,99, 20% + R$ 4,50; a partir de R$ 80, 14% + R$ 16. Se o canal cobra sempre igual, deixe uma faixa só. Cobranças extras entram na própria faixa: some ao percentual ou ao fixo.",
+  "channelTierFrom": "A partir de",
+  "channelTierPercent": "Comissão",
+  "channelTierFixed": "Fixo por venda",
+  "helpChannelPercent": "Parte do preço de venda que o canal fica para si. Se você participa de algum programa com taxa extra em % sobre a venda, some aqui. Ex.: comissão de 14% + programa de 6% = 20.",
+  "helpChannelFixed": "Valor cobrado a cada peça vendida, além da comissão. Se o marketplace cobra extras por item, some aqui. Ex.: fixo de R$ 4,50 + adicional de R$ 3,00 para conta CPF = 7,50.",
+  "channelOfficialFees": "Ver tarifas oficiais",
+  "channelInfoUrl": "Link das tarifas (opcional)",
+  "helpChannelInfoUrl": "Página onde o canal publica as taxas atuais. Fica salva aqui para você conferir quando elas mudarem.",
+  "channelInfoUrlInvalid": "Use um link que comece com https://",
+  "openLinkFailed": "Não foi possível abrir o link",
+  "calcExampleFees": "Taxas de exemplo neste canal. Toque para conferir.",
+  "channelAddTier": "Adicionar faixa",
+  "channelTierSummary": "a partir de {price}: {fee}",
+  "@channelTierSummary": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "channelNoFees": "Sem taxas",
+  "channelExampleBadge": "taxas de exemplo",
+  "channelDuplicateMin": "Duas faixas com o mesmo valor inicial",
+  "settingsDefaultChannel": "Canal padrão",
+  "helpDefaultChannel": "Canal que já vem escolhido na calculadora.",
+  "obWelcomeTitle": "Vamos configurar o básico",
+  "obStep": "Passo {n} de {total}",
+  "@obStep": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "obCostsTitle": "Seus custos",
+  "obCostsText": "Esses valores entram em todo cálculo. Se não souber algum, deixe como está e ajuste depois em Configurações.",
+  "obFilamentTitle": "Seu primeiro filamento",
+  "obFilamentText": "Cadastre o filamento que você mais usa. Os outros podem ser cadastrados depois.",
+  "obPrinterTitle": "Sua impressora",
+  "obPrinterText": "Com a impressora cadastrada, o preço inclui a energia e o desgaste da máquina. Se preferir, pule este passo.",
+  "obChannelTitle": "Onde você vende",
+  "obChannelText": "As taxas do canal entram no preço sugerido. Dá para trocar a cada cálculo.",
+  "obSkip": "Pular",
+  "obFinish": "Começar a calcular",
+  "obPrinterNameHint": "Ex.: Minha impressora",
+  "historyExportCsv": "Exportar planilha (CSV)",
+  "historyExportEmpty": "Nada para exportar ainda",
+  "csvDate": "Data",
+  "csvName": "Peça",
+  "csvCustomer": "Cliente",
+  "csvStatus": "Status",
+  "csvQuantity": "Quantidade",
+  "csvChannel": "Canal",
+  "csvUnitPrice": "Preço unitário",
+  "csvUnitCost": "Custo unitário",
+  "csvUnitProfit": "Lucro unitário",
+  "csvTotalPrice": "Total",
+  "csvTotalProfit": "Lucro total",
+  "csvFilamentGrams": "Filamento total (g)",
+  "csvFileName": "pecas",
+  "archiveChannelConfirm": "Arquivar este canal? Peças já salvas continuam com as taxas usadas.",
+  "channelKeepOne": "Mantenha pelo menos um canal."
 }

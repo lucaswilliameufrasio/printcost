@@ -10,6 +10,7 @@ import '../../domain/models/job_status.dart';
 import '../../domain/pricing/cost_calculator.dart';
 import '../../domain/pricing/price_rounding.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../channels/channel_labels.dart';
 import '../common/async_view.dart';
 import '../common/formatters.dart';
 import '../common/help_button.dart';
@@ -69,8 +70,14 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   final _kwh = TextEditingController();
   final _labor = TextEditingController();
   final _packaging = TextEditingController();
-  final _marketplace = TextEditingController();
   final _tax = TextEditingController();
+  final _units = TextEditingController(text: '1');
+  int? _channelId;
+  bool _channelTouched = false;
+
+  /// Fees of a saved job whose channel no longer exists.
+  ({String name, List<FeeTier> tiers})? _channelSnapshot;
+  final _resultKey = GlobalKey();
   PriceRounding _rounding = PriceRounding.none;
   bool _defaultsApplied = false;
   JobWithFilaments? _editing;
@@ -90,8 +97,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     _kwh,
     _labor,
     _packaging,
-    _marketplace,
     _tax,
+    _units,
   ];
 
   @override
@@ -109,12 +116,14 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     _waste.text = fmt.input(s.defaultWasteBp, Scales.percent);
     _failure.text = fmt.input(s.defaultFailureBp, Scales.percent);
     _margin.text = fmt.input(s.defaultMarginBp, Scales.percent);
-    _kwh.text = fmt.input(s.kwhPrice, Scales.kwhPrice);
-    _labor.text = fmt.input(s.laborHourCents, Scales.money);
-    _packaging.text = fmt.input(s.packagingCents, Scales.money);
-    _marketplace.text = fmt.input(s.marketplaceFeeBp, Scales.percent);
+    _kwh.text = fmt.inputMoney(s.kwhPrice, Scales.kwhPrice);
+    _labor.text = fmt.inputMoney(s.laborHourCents);
+    _packaging.text = fmt.inputMoney(s.packagingCents);
     _tax.text = fmt.input(s.taxBp, Scales.percent);
     _rounding = s.priceRounding;
+    _channelId = s.defaultChannelId;
+    _channelTouched = false;
+    _channelSnapshot = null;
     _defaultsApplied = true;
     _generation++;
   }
@@ -138,6 +147,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       _hours.clear();
       _minutes.clear();
       _post.text = '0';
+      _units.text = '1';
       _printerId = null;
       _printerTouched = false;
       _editing = null;
@@ -158,21 +168,35 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           for (final f in job.filaments)
             _Line(
               filamentId: f.filamentId,
-              grams: fmt.input(f.weightMg, Scales.grams),
+              // Lines are stored per part; the form takes the whole print.
+              grams: fmt.input(f.weightMg * j.unitsPerPrint, Scales.grams),
               snapshot: _Snapshot(f.label, f.rollPriceCents, f.rollWeightGrams),
             ),
         ]);
         _setTime(j.printSeconds);
         _post.text = '${j.postProcessMinutes}';
+        _units.text = '${j.unitsPerPrint}';
+        _channelId = j.channelId;
+        _channelTouched = true;
+        _channelSnapshot = j.channelId == null && j.channelName == null
+            ? null
+            : (
+                name: j.channelName ?? '',
+                tiers: [
+                  FeeTier(
+                    feeBp: j.marketplaceFeeBp,
+                    fixedCents: j.marketplaceFixedCents,
+                  ),
+                ],
+              );
         _printerId = j.printerId;
         _printerTouched = true;
         _waste.text = fmt.input(j.wasteBp, Scales.percent);
         _failure.text = fmt.input(j.failureBp, Scales.percent);
         _margin.text = fmt.input(j.marginBp, Scales.percent);
-        _kwh.text = fmt.input(j.kwhPrice, Scales.kwhPrice);
-        _labor.text = fmt.input(j.laborHourCents, Scales.money);
-        _packaging.text = fmt.input(j.packagingCents, Scales.money);
-        _marketplace.text = fmt.input(j.marketplaceFeeBp, Scales.percent);
+        _kwh.text = fmt.inputMoney(j.kwhPrice, Scales.kwhPrice);
+        _labor.text = fmt.inputMoney(j.laborHourCents);
+        _packaging.text = fmt.inputMoney(j.packagingCents);
         _tax.text = fmt.input(j.taxBp, Scales.percent);
         _rounding = j.priceRounding;
         _defaultsApplied = true;
@@ -243,10 +267,26 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     return null;
   }
 
+  /// Selected channel, or null when using a saved job's snapshot.
+  SalesChannelRow? _channel(List<SalesChannelRow> channels, SettingsRow s) {
+    final id = _channelTouched ? _channelId : s.defaultChannelId;
+    return channels.where((c) => c.id == id).firstOrNull ??
+        (_channelTouched && _channelSnapshot != null
+            ? null
+            : channels.firstOrNull);
+  }
+
+  List<FeeTier> _feeTiers(List<SalesChannelRow> channels, SettingsRow s) =>
+      _channel(channels, s)?.tiers ??
+      _channelSnapshot?.tiers ??
+      const [FeeTier()];
+
   /// Builds the pure input from the form, or null when something is missing.
   PricingInput? _buildInput(
     List<FilamentRow> filaments,
     List<PrinterRow> printers,
+    List<SalesChannelRow> channels,
+    SettingsRow settings,
     Formatters fmt,
   ) {
     final usages = <FilamentUsage>[];
@@ -284,6 +324,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     final hours = intOr0(_hours);
     final minutes = intOr0(_minutes);
     final post = intOr0(_post);
+    final units = int.tryParse(_units.text.trim());
+    if (units == null || units < 1) return null;
     final values = [
       fmt.parse(_waste.text, Scales.percent),
       fmt.parse(_failure.text, Scales.percent),
@@ -291,7 +333,6 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       fmt.parse(_kwh.text, Scales.kwhPrice),
       fmt.parse(_labor.text, Scales.money),
       fmt.parse(_packaging.text, Scales.money),
-      fmt.parse(_marketplace.text, Scales.percent),
       fmt.parse(_tax.text, Scales.percent),
     ];
     if (hours == null || minutes == null || post == null) return null;
@@ -307,8 +348,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       kwhPrice: v[3],
       laborHourCents: v[4],
       packagingCents: v[5],
-      marketplaceFeeBp: v[6],
-      taxBp: v[7],
+      taxBp: v[6],
+      feeTiers: _feeTiers(channels, settings),
+      unitsPerPrint: units,
       postProcessMinutes: post,
       rounding: _rounding,
     );
@@ -319,6 +361,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     CostBreakdown b,
     List<FilamentRow> filaments,
     List<PrinterRow> printers,
+    SalesChannelRow? channel,
     Formatters fmt,
   ) async {
     final l = AppLocalizations.of(context);
@@ -328,7 +371,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       JobMeta(
         name: editing?.name ?? _suggestedName ?? '',
         customer: editing?.customer,
-        quantity: editing?.quantity ?? 1,
+        quantity: editing?.quantity ?? input.unitsPerPrint,
         status: editing?.status ?? JobStatus.quote,
         notes: editing?.notes,
         photoPath: editing?.photoPath,
@@ -365,7 +408,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       wasteBp: Value(input.wasteBp),
       failureBp: Value(input.failureBp),
       marginBp: Value(input.marginBp),
-      marketplaceFeeBp: Value(input.marketplaceFeeBp),
+      marketplaceFeeBp: Value(b.appliedTier.feeBp),
+      marketplaceFixedCents: Value(b.appliedTier.fixedCents),
+      channelId: Value(channel?.id),
+      channelName: Value(channel?.name ?? _channelSnapshot?.name),
+      unitsPerPrint: Value(input.unitsPerPrint),
       taxBp: Value(input.taxBp),
       priceRounding: Value(input.rounding),
       costCents: Value(b.totalCostCents),
@@ -377,7 +424,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     for (final line in _lines) {
       final id = _effectiveFilamentId(line, filaments);
       final f = filaments.where((f) => f.id == id).firstOrNull;
-      final mg = fmt.parse(line.grams.text, Scales.grams)!;
+      // Stored per part, so stock deduction is `weight × quantity`.
+      final batchMg = fmt.parse(line.grams.text, Scales.grams)!;
+      final units = input.unitsPerPrint;
+      final mg = (batchMg + units ~/ 2) ~/ units;
       lines.add(
         JobFilamentsCompanion.insert(
           jobId: 0,
@@ -396,6 +446,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l.jobSaved),
+        persist: false,
         action: SnackBarAction(
           label: l.jobDetails,
           onPressed: () => context.go(Routes.job(id)),
@@ -411,6 +462,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     final settingsAsync = ref.watch(settingsProvider);
     final filaments = ref.watch(filamentsProvider).value;
     final printers = ref.watch(printersProvider).value;
+    final channels = ref.watch(channelsProvider).value;
     final settings = settingsAsync.value;
 
     if (settings != null && !_defaultsApplied) _applyDefaults(settings, fmt);
@@ -423,6 +475,20 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     }
 
     final importAction = ref.watch(sliceImportActionProvider);
+    final ready =
+        settings != null &&
+        filaments != null &&
+        printers != null &&
+        channels != null;
+    final needFilament =
+        ready && filaments.isEmpty && _lines.every((l) => l.snapshot == null);
+
+    PricingInput? input;
+    PricingResult? result;
+    if (ready && !needFilament) {
+      input = _buildInput(filaments, printers, channels, settings, fmt);
+      result = input == null ? null : calculatePrice(input);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -440,17 +506,35 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             ),
         ],
       ),
-      body: settings == null || filaments == null || printers == null
+      bottomNavigationBar: result == null
+          ? null
+          : _PriceBar(
+              result: result,
+              fmt: fmt,
+              onTap: () {
+                final target = _resultKey.currentContext;
+                if (target != null) {
+                  Scrollable.ensureVisible(
+                    target,
+                    duration: const Duration(milliseconds: 300),
+                  );
+                }
+              },
+            ),
+      body: !ready
           ? AsyncView(value: settingsAsync, builder: (_) => const SizedBox())
-          : filaments.isEmpty && _lines.every((l) => l.snapshot == null)
+          : needFilament
           ? _NeedFilament()
           : _buildForm(
               context,
               settings,
               filaments,
               printers,
+              channels,
               fmt,
               importAction,
+              input,
+              result,
             ),
     );
   }
@@ -460,37 +544,38 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     SettingsRow settings,
     List<FilamentRow> filaments,
     List<PrinterRow> printers,
+    List<SalesChannelRow> channels,
     Formatters fmt,
     SliceImportAction? importAction,
+    PricingInput? input,
+    PricingResult? result,
   ) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final input = _buildInput(filaments, printers, fmt);
-    final result = input == null ? null : calculatePrice(input);
     const gap = SizedBox(height: 12);
     void changed([Object? _]) => setState(() {});
 
-    Widget section(String title, List<Widget> children, {Widget? trailing}) =>
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(title, style: theme.textTheme.titleMedium),
-                    ),
-                    ?trailing,
-                  ],
-                ),
-                gap,
-                ...children,
-              ],
-            ),
-          ),
-        );
+    Widget section(String title, List<Widget> children) => Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: theme.textTheme.titleMedium),
+            gap,
+            ...children,
+          ],
+        ),
+      ),
+    );
+
+    /// Dropdowns keep their arrow; the "?" sits beside them.
+    Widget withHelp(Widget field, String title, String help) => Row(
+      children: [
+        Expanded(child: field),
+        HelpButton(title: title, text: help),
+      ],
+    );
 
     Widget pct(
       TextEditingController c,
@@ -521,238 +606,297 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     );
 
     final printerValue = _effectivePrinterId(printers);
+    final channel = _channel(channels, settings);
+    final snapshot = _channelSnapshot;
+    const snapshotId = -1;
     return Form(
       key: _formKey,
-      child: ListView(
+      child: SingleChildScrollView(
         key: ValueKey(_generation),
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-        children: [
-          section(l.calcFilamentsSection, [
-            for (final (i, line) in _lines.indexed) ...[
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            section(l.calcFilamentsSection, [
+              for (final (i, line) in _lines.indexed) ...[
+                DropdownButtonFormField<int>(
+                  key: Key('calc.filament.$i'),
+                  isExpanded: true,
+                  initialValue: _effectiveFilamentId(line, filaments),
+                  hint: Text(
+                    line.snapshot?.label ?? line.hint ?? l.calcSelectFilament,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  decoration: InputDecoration(labelText: l.calcSelectFilament),
+                  items: [
+                    for (final f in filaments)
+                      DropdownMenuItem(
+                        value: f.id,
+                        child: Row(
+                          children: [
+                            ColorDot(argb: f.colorArgb, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                filamentLabel(f),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                  onChanged: (v) => setState(() => line.filamentId = v),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: NumberField(
+                        fieldKey: Key('calc.grams.$i'),
+                        controller: line.grams,
+                        label: l.calcGrams,
+                        suffix: 'g',
+                        help: i == 0 ? l.helpGrams : null,
+                        parse: (t) => fmt.parse(t, Scales.grams),
+                        onChanged: changed,
+                      ),
+                    ),
+                    if (_lines.length > 1)
+                      IconButton(
+                        tooltip: l.delete,
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () => setState(() {
+                          _lines.removeAt(i).grams.dispose();
+                          _generation++;
+                        }),
+                      ),
+                  ],
+                ),
+                if (i < _lines.length - 1) const Divider(height: 32),
+              ],
+              gap,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => setState(
+                      () => _lines.add(
+                        _Line(filamentId: filaments.firstOrNull?.id),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: Text(l.calcAddFilament),
+                  ),
+                  if (importAction != null)
+                    FilledButton.tonalIcon(
+                      key: const Key('calc.import'),
+                      onPressed: () => importAction(context, ref),
+                      icon: const Icon(Icons.file_open_outlined),
+                      label: Text(l.calcImport3mf),
+                    ),
+                ],
+              ),
+            ]),
+            gap,
+            section(l.calcPrinterSection, [
+              withHelp(
+                DropdownButtonFormField<int?>(
+                  key: const Key('calc.printer'),
+                  isExpanded: true,
+                  initialValue: printerValue,
+                  decoration: InputDecoration(labelText: l.calcPrinter),
+                  items: [
+                    for (final p in printers)
+                      DropdownMenuItem(
+                        value: p.id,
+                        child: Text(p.name, overflow: TextOverflow.ellipsis),
+                      ),
+                    DropdownMenuItem(child: Text(l.calcNoPrinter)),
+                  ],
+                  onChanged: (v) => setState(() {
+                    _printerId = v;
+                    _printerTouched = true;
+                  }),
+                ),
+                l.calcPrinter,
+                l.helpPrinterField,
+              ),
+              gap,
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 3,
-                    child: DropdownButtonFormField<int>(
-                      key: Key('calc.filament.$i'),
-                      isExpanded: true,
-                      initialValue: _effectiveFilamentId(line, filaments),
-                      hint: Text(
-                        line.snapshot?.label ??
-                            line.hint ??
-                            l.calcSelectFilament,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: l.calcSelectFilament,
-                      ),
-                      items: [
-                        for (final f in filaments)
-                          DropdownMenuItem(
-                            value: f.id,
-                            child: Row(
-                              children: [
-                                ColorDot(argb: f.colorArgb, size: 16),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    filamentLabel(f),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                      onChanged: (v) => setState(() => line.filamentId = v),
+                    child: NumberField(
+                      fieldKey: const Key('calc.hours'),
+                      controller: _hours,
+                      label: l.calcHours,
+                      decimal: false,
+                      required: false,
+                      parse: (t) => int.tryParse(t.trim()),
+                      onChanged: changed,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    flex: 2,
                     child: NumberField(
-                      fieldKey: Key('calc.grams.$i'),
-                      controller: line.grams,
-                      label: l.calcGrams,
-                      suffix: 'g',
-                      help: i == 0 ? l.helpGrams : null,
-                      parse: (t) => fmt.parse(t, Scales.grams),
+                      fieldKey: const Key('calc.minutes'),
+                      controller: _minutes,
+                      label: l.calcMinutes,
+                      decimal: false,
+                      required: false,
+                      help: l.helpPrintTime,
+                      parse: (t) => int.tryParse(t.trim()),
                       onChanged: changed,
                     ),
                   ),
-                  if (_lines.length > 1)
-                    IconButton(
-                      tooltip: l.delete,
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: () => setState(() {
-                        _lines.removeAt(i).grams.dispose();
-                        _generation++;
-                      }),
-                    ),
                 ],
               ),
               gap,
-            ],
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => setState(
-                    () => _lines.add(
-                      _Line(filamentId: filaments.firstOrNull?.id),
-                    ),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: Text(l.calcAddFilament),
-                ),
-                if (importAction != null)
-                  FilledButton.tonalIcon(
-                    key: const Key('calc.import'),
-                    onPressed: () => importAction(context, ref),
-                    icon: const Icon(Icons.file_open_outlined),
-                    label: Text(l.calcImport3mf),
-                  ),
-              ],
-            ),
-          ]),
-          gap,
-          section(l.calcPrinterSection, [
-            DropdownButtonFormField<int?>(
-              key: const Key('calc.printer'),
-              isExpanded: true,
-              initialValue: printerValue,
-              decoration: InputDecoration(
-                labelText: l.calcPrinter,
-                suffixIcon: HelpButton(
-                  title: l.calcPrinter,
-                  text: l.helpPrinterField,
-                ),
+              NumberField(
+                fieldKey: const Key('calc.units'),
+                controller: _units,
+                label: l.calcUnits,
+                help: l.helpUnits,
+                decimal: false,
+                positive: true,
+                parse: (t) => int.tryParse(t.trim()),
+                onChanged: changed,
               ),
-              items: [
-                for (final p in printers)
-                  DropdownMenuItem(value: p.id, child: Text(p.name)),
-                DropdownMenuItem(child: Text(l.calcNoPrinter)),
-              ],
-              onChanged: (v) => setState(() {
-                _printerId = v;
-                _printerTouched = true;
-              }),
-            ),
-            gap,
-            Row(
-              children: [
-                Expanded(
-                  child: NumberField(
-                    fieldKey: const Key('calc.hours'),
-                    controller: _hours,
-                    label: l.calcHours,
-                    decimal: false,
-                    required: false,
-                    parse: (t) => int.tryParse(t.trim()),
-                    onChanged: changed,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: NumberField(
-                    fieldKey: const Key('calc.minutes'),
-                    controller: _minutes,
-                    label: l.calcMinutes,
-                    decimal: false,
-                    required: false,
-                    help: l.helpPrintTime,
-                    parse: (t) => int.tryParse(t.trim()),
-                    onChanged: changed,
-                  ),
-                ),
-              ],
-            ),
-            gap,
-            NumberField(
-              fieldKey: const Key('calc.post'),
-              controller: _post,
-              label: l.calcPostProcess,
-              decimal: false,
-              required: false,
-              help: l.helpPostProcess,
-              parse: (t) => int.tryParse(t.trim()),
-              onChanged: changed,
-            ),
-          ]),
-          gap,
-          section(l.calcPercentsSection, [
-            pct(_margin, l.calcMargin, l.helpMargin, 'calc.margin'),
-            gap,
-            pct(_waste, l.calcWaste, l.helpWaste, 'calc.waste'),
-            gap,
-            pct(_failure, l.calcFailure, l.helpFailure, 'calc.failure'),
-            gap,
-            DropdownButtonFormField<PriceRounding>(
-              key: const Key('calc.rounding'),
-              initialValue: _rounding,
-              decoration: InputDecoration(
-                labelText: l.settingsRounding,
-                suffixIcon: HelpButton(
-                  title: l.settingsRounding,
-                  text: l.helpRounding,
-                ),
+              gap,
+              NumberField(
+                fieldKey: const Key('calc.post'),
+                controller: _post,
+                label: l.calcPostProcess,
+                decimal: false,
+                required: false,
+                help: l.helpPostProcess,
+                parse: (t) => int.tryParse(t.trim()),
+                onChanged: changed,
               ),
-              items: [
-                for (final r in PriceRounding.values)
-                  DropdownMenuItem(value: r, child: Text(roundingLabel(l, r))),
-              ],
-              onChanged: (r) => setState(() => _rounding = r!),
-            ),
-          ]),
-          gap,
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: ExpansionTile(
-              title: Text(l.calcAdvanced),
-              subtitle: Text(l.calcAdvancedSubtitle),
-              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              children: [
-                money(_kwh, l.settingsKwh, l.helpKwh, Scales.kwhPrice),
-                gap,
-                money(_labor, l.settingsLaborHour, l.helpLabor, Scales.money),
-                gap,
-                money(
-                  _packaging,
-                  l.settingsPackaging,
-                  l.helpPackaging,
-                  Scales.money,
+            ]),
+            gap,
+            section(l.calcPercentsSection, [
+              withHelp(
+                DropdownButtonFormField<int>(
+                  key: const Key('calc.channel'),
+                  isExpanded: true,
+                  initialValue:
+                      channel?.id ?? (snapshot == null ? null : snapshotId),
+                  decoration: InputDecoration(labelText: l.calcChannel),
+                  items: [
+                    for (final c in channels)
+                      DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.name, overflow: TextOverflow.ellipsis),
+                      ),
+                    if (snapshot != null && channel == null)
+                      DropdownMenuItem(
+                        value: snapshotId,
+                        child: Text(
+                          snapshot.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (v) => setState(() {
+                    if (v == snapshotId) return;
+                    _channelId = v;
+                    _channelTouched = true;
+                    _channelSnapshot = null;
+                  }),
                 ),
-                gap,
-                pct(
-                  _marketplace,
-                  l.settingsMarketplace,
-                  l.helpMarketplace,
-                  'calc.marketplace',
-                ),
-                gap,
-                pct(_tax, l.settingsTax, l.helpTax, 'calc.tax'),
-              ],
-            ),
-          ),
-          gap,
-          _ResultCard(
-            result: result,
-            fmt: fmt,
-            editing: _editing != null,
-            onSave: switch (result) {
-              PricingSuccess(:final breakdown) => () => _save(
-                input!,
-                breakdown,
-                filaments,
-                printers,
-                fmt,
+                l.calcChannel,
+                l.helpChannel,
               ),
-              _ => null,
-            },
-          ),
-        ],
+              gap,
+              pct(_margin, l.calcMargin, l.helpMargin, 'calc.margin'),
+              gap,
+              pct(_waste, l.calcWaste, l.helpWaste, 'calc.waste'),
+              gap,
+              pct(_failure, l.calcFailure, l.helpFailure, 'calc.failure'),
+              gap,
+              withHelp(
+                DropdownButtonFormField<PriceRounding>(
+                  key: const Key('calc.rounding'),
+                  isExpanded: true,
+                  initialValue: _rounding,
+                  decoration: InputDecoration(labelText: l.settingsRounding),
+                  items: [
+                    for (final r in PriceRounding.values)
+                      DropdownMenuItem(
+                        value: r,
+                        child: Text(roundingLabel(l, r)),
+                      ),
+                  ],
+                  onChanged: (r) => setState(() => _rounding = r!),
+                ),
+                l.settingsRounding,
+                l.helpRounding,
+              ),
+            ]),
+            gap,
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: ExpansionTile(
+                title: Text(l.calcAdvanced),
+                subtitle: Text(l.calcAdvancedSubtitle),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                children: [
+                  money(_kwh, l.settingsKwh, l.helpKwh, Scales.kwhPrice),
+                  gap,
+                  money(_labor, l.settingsLaborHour, l.helpLabor, Scales.money),
+                  gap,
+                  money(
+                    _packaging,
+                    l.settingsPackaging,
+                    l.helpPackaging,
+                    Scales.money,
+                  ),
+                  gap,
+                  pct(_tax, l.settingsTax, l.helpTax, 'calc.tax'),
+                ],
+              ),
+            ),
+            gap,
+            _ResultCard(
+              key: _resultKey,
+              result: result,
+              fmt: fmt,
+              editing: _editing != null,
+              units: input?.unitsPerPrint ?? 1,
+              onCheckExampleFees: channel != null && channel.isExample
+                  ? () => context.go(
+                      Routes.channelThen(channel.id, Routes.calculator),
+                    )
+                  : null,
+              others: [
+                if (input != null && result is PricingSuccess)
+                  for (final c in channels)
+                    if (c.id != channel?.id)
+                      (
+                        name: c.isExample
+                            ? '${c.name} · ${l.channelExampleBadge}'
+                            : c.name,
+                        result: calculatePrice(input.withFeeTiers(c.tiers)),
+                      ),
+              ],
+              onSave: switch (result) {
+                PricingSuccess(:final breakdown) => () => _save(
+                  input!,
+                  breakdown,
+                  filaments,
+                  printers,
+                  channel,
+                  fmt,
+                ),
+                _ => null,
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -768,15 +912,96 @@ class _NeedFilament extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.circle_outlined, size: 48),
+            const Icon(Icons.album_outlined, size: 48),
             const SizedBox(height: 16),
             Text(l.calcNeedFilament, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: () => context.go(Routes.newFilament),
+              onPressed: () =>
+                  context.go(Routes.newFilamentThen(Routes.calculator)),
               child: Text(l.calcGoToFilaments),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+String _errorMessage(AppLocalizations l, Formatters fmt, PricingFailure r) =>
+    switch (r.error) {
+      PricingError.deductionsTooHigh => l.errDeductionsTooHigh(
+        fmt.percent(r.deductionsBp ?? 0),
+      ),
+      PricingError.negativeValue => l.errNegative,
+      PricingError.invalidRollWeight => l.errRollWeight,
+    };
+
+/// Always-visible price at the bottom, so it can be read while editing.
+class _PriceBar extends StatelessWidget {
+  const _PriceBar({
+    required this.result,
+    required this.fmt,
+    required this.onTap,
+  });
+
+  final PricingResult result;
+  final Formatters fmt;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final r = result;
+    return Material(
+      color: r is PricingFailure
+          ? theme.colorScheme.errorContainer
+          : theme.colorScheme.surfaceContainerHigh,
+      child: SafeArea(
+        top: false,
+        child: InkWell(
+          key: const Key('calc.priceBar'),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: switch (r) {
+                    PricingSuccess(:final breakdown) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          fmt.money(breakdown.priceCents),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        Text(
+                          '${l.calcResultProfit}: '
+                          '${fmt.money(breakdown.netProfitCents)} '
+                          '(${fmt.percent(breakdown.netMarginBp)})',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                    PricingFailure() => Text(
+                      _errorMessage(l, fmt, r),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  },
+                ),
+                TextButton(onPressed: onTap, child: Text(l.calcSeeDetails)),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -788,13 +1013,22 @@ class _ResultCard extends StatelessWidget {
     required this.result,
     required this.fmt,
     required this.editing,
+    required this.units,
+    required this.others,
     required this.onSave,
+    this.onCheckExampleFees,
+    super.key,
   });
 
   final PricingResult? result;
   final Formatters fmt;
   final bool editing;
+  final int units;
+  final List<({String name, PricingResult result})> others;
   final VoidCallback? onSave;
+
+  /// Set when the selected channel still has the seeded example fees.
+  final VoidCallback? onCheckExampleFees;
 
   @override
   Widget build(BuildContext context) {
@@ -810,13 +1044,6 @@ class _ResultCard extends StatelessWidget {
       );
     }
     if (r is PricingFailure) {
-      final message = switch (r.error) {
-        PricingError.deductionsTooHigh => l.errDeductionsTooHigh(
-          fmt.percent(r.deductionsBp ?? 0),
-        ),
-        PricingError.negativeValue => l.errNegative,
-        PricingError.invalidRollWeight => l.errRollWeight,
-      };
       return Card(
         key: const Key('calc.error'),
         color: theme.colorScheme.errorContainer,
@@ -832,7 +1059,7 @@ class _ResultCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  message,
+                  _errorMessage(l, fmt, r),
                   style: TextStyle(color: theme.colorScheme.onErrorContainer),
                 ),
               ),
@@ -842,13 +1069,23 @@ class _ResultCard extends StatelessWidget {
       );
     }
     final b = (r as PricingSuccess).breakdown;
+    final muted = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final otherRows = [
+      for (final o in others)
+        if (o.result case PricingSuccess(:final breakdown)) (o.name, breakdown),
+    ];
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l.calcResultPrice, style: theme.textTheme.titleSmall),
+            Text(
+              units > 1 ? l.calcPricePerPart : l.calcResultPrice,
+              style: theme.textTheme.titleSmall,
+            ),
             Text(
               fmt.money(b.priceCents),
               key: const Key('calc.price'),
@@ -860,8 +1097,54 @@ class _ResultCard extends StatelessWidget {
             if (b.unroundedPriceCents != b.priceCents)
               Text(
                 l.calcPriceBeforeRounding(fmt.money(b.unroundedPriceCents)),
-                style: theme.textTheme.bodySmall,
+                style: muted,
               ),
+            if (units > 1)
+              Text(
+                l.calcBatchTotal(units, fmt.money(b.priceCents * units)),
+                key: const Key('calc.batchTotal'),
+                style: theme.textTheme.bodyMedium,
+              ),
+            Text(
+              l.calcChannelFee(feeLabel(l, fmt, b.appliedTier)),
+              style: muted,
+            ),
+            if (onCheckExampleFees case final onTap?) ...[
+              const SizedBox(height: 8),
+              Material(
+                color: theme.colorScheme.tertiaryContainer,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  key: const Key('calc.exampleFees'),
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: onTap,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            l.calcExampleFees,
+                            style: TextStyle(
+                              color: theme.colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -886,6 +1169,36 @@ class _ResultCard extends StatelessWidget {
             Text(l.calcBreakdown, style: theme.textTheme.titleSmall),
             const SizedBox(height: 12),
             BreakdownChart(breakdown: b, fmt: fmt),
+            if (otherRows.isNotEmpty) ...[
+              const Divider(height: 32),
+              Text(l.calcOtherChannels, style: theme.textTheme.titleSmall),
+              const SizedBox(height: 8),
+              for (final (name, ob) in otherRows)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(name)),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            fmt.money(ob.priceCents),
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          Text(
+                            l.calcOtherChannelProfit(
+                              fmt.money(ob.netProfitCents),
+                            ),
+                            style: muted,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
             const SizedBox(height: 16),
             FilledButton.icon(
               key: const Key('calc.save'),

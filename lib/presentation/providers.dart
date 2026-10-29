@@ -33,6 +33,10 @@ final printersProvider = StreamProvider<List<PrinterRow>>(
   (ref) => ref.watch(catalogRepositoryProvider).watchPrinters(),
 );
 
+final channelsProvider = StreamProvider<List<SalesChannelRow>>(
+  (ref) => ref.watch(catalogRepositoryProvider).watchChannels(),
+);
+
 final jobsProvider =
     StreamProvider.family<List<JobRow>, ({JobStatus? status, String search})>(
       (ref, filter) => ref

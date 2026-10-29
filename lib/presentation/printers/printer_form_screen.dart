@@ -48,9 +48,9 @@ class _PrinterFormState extends ConsumerState<PrinterFormScreen> {
         final fmt = Formatters.of(context, ref);
         _name.text = p.name;
         _power.text = '${p.powerWatts}';
-        _value.text = fmt.input(p.machineValueCents, Scales.money);
+        _value.text = fmt.inputMoney(p.machineValueCents);
         _life.text = '${p.lifespanHours}';
-        _maintenance.text = fmt.input(p.maintenancePerHourCents, Scales.money);
+        _maintenance.text = fmt.inputMoney(p.maintenancePerHourCents);
       }
     }
     setState(() => _loaded = true);

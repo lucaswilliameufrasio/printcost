@@ -46,6 +46,12 @@ class Formatters {
     return '${negative ? '-' : ''}$_currencySymbol$space$body';
   }
 
+  /// Whole currency units for chart axes: `R$ 1.200`.
+  String moneyWhole(int units) {
+    final space = decimalSeparator == ',' ? ' ' : '';
+    return '${units < 0 ? '-' : ''}$_currencySymbol$space${_grouped(units.abs())}';
+  }
+
   /// Basis points -> `30%`, `12,5%`.
   String percent(int bp) =>
       '${formatScaled(bp, scale: Scales.percent, decimalSeparator: decimalSeparator, trimZeros: true)}%';
@@ -75,13 +81,22 @@ class Formatters {
   String monthShort(int year, int month) =>
       DateFormat('MMM/yy', locale).format(DateTime(year, month));
 
-  /// For prefilling input fields.
+  /// For prefilling input fields: `12,5` for percent and grams.
   String input(int value, int scale) => formatScaled(
     value,
     scale: scale,
     decimalSeparator: decimalSeparator,
     trimZeros: true,
   );
+
+  /// Money fields always show cents: `25,00`; the kWh price keeps up to
+  /// 4 decimals but at least 2: `0,90`, `0,8950`.
+  String inputMoney(int value, [int scale = Scales.money]) {
+    final text = input(value, scale);
+    final dot = text.indexOf(decimalSeparator);
+    if (dot < 0) return '$text${decimalSeparator}00';
+    return text.padRight(dot + 3, '0');
+  }
 
   int? parse(String text, int scale) =>
       parseScaled(text, scale: scale, decimalSeparator: decimalSeparator);

@@ -5,14 +5,18 @@ import 'package:go_router/go_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'backup/backup_screen.dart';
 import 'calculator/calculator_screen.dart';
+import 'channels/channel_form_screen.dart';
+import 'channels/channels_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'filaments/filament_form_screen.dart';
 import 'filaments/filaments_screen.dart';
 import 'history/history_screen.dart';
 import 'history/job_detail_screen.dart';
 import 'more/more_screen.dart';
+import 'onboarding/onboarding_screen.dart';
 import 'printers/printer_form_screen.dart';
 import 'printers/printers_screen.dart';
+import 'providers.dart';
 import 'settings/settings_screen.dart';
 
 abstract final class Routes {
@@ -27,7 +31,19 @@ abstract final class Routes {
   static const printers = '/more/printers';
   static const newPrinter = '/more/printers/new';
   static String printer(int id) => '/more/printers/$id';
+  static const channels = '/more/channels';
+  static const newChannel = '/more/channels/new';
+  static String channel(int id) => '/more/channels/$id';
+
+  /// Channel form that goes back to [back] after saving.
+  static String channelThen(int id, String back) =>
+      Uri(path: channel(id), queryParameters: {'back': back}).toString();
   static const settings = '/more/settings';
+  static const welcome = '/welcome';
+
+  /// New filament form that goes back to [back] after saving.
+  static String newFilamentThen(String back) =>
+      Uri(path: newFilament, queryParameters: {'back': back}).toString();
   static const backup = '/more/backup';
 }
 
@@ -36,9 +52,31 @@ final extraMoreRoutesProvider = Provider<List<RouteBase>>((ref) => const []);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final extra = ref.watch(extraMoreRoutesProvider);
+  // First-run setup: null while settings load.
+  final onboardingDone = ValueNotifier<bool?>(null);
+  ref
+    ..listen(
+      settingsProvider,
+      (_, next) => onboardingDone.value = next.value?.onboardingDone,
+      fireImmediately: true,
+    )
+    ..onDispose(onboardingDone.dispose);
   final router = GoRouter(
     initialLocation: Routes.calculator,
+    refreshListenable: onboardingDone,
+    redirect: (context, state) {
+      final done = onboardingDone.value;
+      if (done == null) return null;
+      final atWelcome = state.matchedLocation == Routes.welcome;
+      if (!done && !atWelcome) return Routes.welcome;
+      if (done && atWelcome) return Routes.calculator;
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: Routes.welcome,
+        builder: (_, _) => const OnboardingScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => _Shell(shell: shell),
         branches: [
@@ -86,7 +124,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'new',
-                        builder: (_, _) => const FilamentFormScreen(),
+                        builder: (_, state) => FilamentFormScreen(
+                          backTo: state.uri.queryParameters['back'],
+                        ),
                       ),
                       GoRoute(
                         path: ':id',
@@ -108,6 +148,23 @@ final routerProvider = Provider<GoRouter>((ref) {
                         path: ':id',
                         builder: (_, state) => PrinterFormScreen(
                           id: int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'channels',
+                    builder: (_, _) => const ChannelsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (_, _) => const ChannelFormScreen(),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        builder: (_, state) => ChannelFormScreen(
+                          id: int.parse(state.pathParameters['id']!),
+                          backTo: state.uri.queryParameters['back'],
                         ),
                       ),
                     ],

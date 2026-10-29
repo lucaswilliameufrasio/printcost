@@ -779,7 +779,7 @@ abstract class AppLocalizations {
   /// No description provided for @calcNoPrinter.
   ///
   /// In pt, this message translates to:
-  /// **'Sem impressora (ignora energia e desgaste)'**
+  /// **'Nenhuma impressora'**
   String get calcNoPrinter;
 
   /// No description provided for @calcHours.
@@ -797,13 +797,13 @@ abstract class AppLocalizations {
   /// No description provided for @calcPostProcess.
   ///
   /// In pt, this message translates to:
-  /// **'Pós-processamento (min)'**
+  /// **'Pós-processamento por peça (min)'**
   String get calcPostProcess;
 
   /// No description provided for @calcPercentsSection.
   ///
   /// In pt, this message translates to:
-  /// **'Margem e reservas'**
+  /// **'Venda e margem'**
   String get calcPercentsSection;
 
   /// No description provided for @calcWaste.
@@ -827,7 +827,7 @@ abstract class AppLocalizations {
   /// No description provided for @calcAdvanced.
   ///
   /// In pt, this message translates to:
-  /// **'Custos e taxas desta peça'**
+  /// **'Custos desta peça'**
   String get calcAdvanced;
 
   /// No description provided for @calcAdvancedSubtitle.
@@ -911,7 +911,7 @@ abstract class AppLocalizations {
   /// No description provided for @breakdownFees.
   ///
   /// In pt, this message translates to:
-  /// **'Taxa do marketplace'**
+  /// **'Taxas do canal'**
   String get breakdownFees;
 
   /// No description provided for @breakdownTaxes.
@@ -983,7 +983,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPrinterField.
   ///
   /// In pt, this message translates to:
-  /// **'Impressora usada. Define o gasto de energia e o desgaste por hora.'**
+  /// **'Impressora usada. Define o gasto de energia e o desgaste por hora. Sem impressora, energia e desgaste ficam fora do preço.'**
   String get helpPrinterField;
 
   /// No description provided for @helpPrintTime.
@@ -1343,7 +1343,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashJobsSold.
   ///
   /// In pt, this message translates to:
-  /// **'Peças vendidas'**
+  /// **'Peças produzidas'**
   String get dashJobsSold;
 
   /// No description provided for @dashTopJobs.
@@ -1945,6 +1945,408 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Não foi possível conectar. {detail}'**
   String errUnknownPrinter(String detail);
+
+  /// No description provided for @calcUnits.
+  ///
+  /// In pt, this message translates to:
+  /// **'Peças nesta impressão'**
+  String get calcUnits;
+
+  /// No description provided for @helpUnits.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quantas peças saem juntas na mesma mesa. Gramas e tempo são da impressão inteira (como o fatiador mostra); o app divide entre as peças. Pós-processamento, embalagem e taxas são por peça.'**
+  String get helpUnits;
+
+  /// No description provided for @calcChannel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Onde vai vender'**
+  String get calcChannel;
+
+  /// No description provided for @helpChannel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cada canal cobra taxas diferentes, e elas entram no preço. Ajuste as taxas em Mais → Canais de venda.'**
+  String get helpChannel;
+
+  /// No description provided for @calcChannelFee.
+  ///
+  /// In pt, this message translates to:
+  /// **'Taxa do canal neste preço: {fee}'**
+  String calcChannelFee(String fee);
+
+  /// No description provided for @calcBatchTotal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total das {count} peças: {price}'**
+  String calcBatchTotal(int count, String price);
+
+  /// No description provided for @calcPricePerPart.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preço sugerido por peça'**
+  String get calcPricePerPart;
+
+  /// No description provided for @calcOtherChannels.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mesma margem em outros canais'**
+  String get calcOtherChannels;
+
+  /// No description provided for @calcOtherChannelProfit.
+  ///
+  /// In pt, this message translates to:
+  /// **'lucro {profit}'**
+  String calcOtherChannelProfit(String profit);
+
+  /// No description provided for @calcSeeDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver detalhes'**
+  String get calcSeeDetails;
+
+  /// No description provided for @calcFixRequired.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preencha os campos marcados'**
+  String get calcFixRequired;
+
+  /// No description provided for @channels.
+  ///
+  /// In pt, this message translates to:
+  /// **'Canais de venda'**
+  String get channels;
+
+  /// No description provided for @channelNew.
+  ///
+  /// In pt, this message translates to:
+  /// **'Novo canal'**
+  String get channelNew;
+
+  /// No description provided for @channelEdit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar canal'**
+  String get channelEdit;
+
+  /// No description provided for @channelName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome do canal'**
+  String get channelName;
+
+  /// No description provided for @helpChannelName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ex.: Shopee, Mercado Livre, Elo7, Instagram, feira.'**
+  String get helpChannelName;
+
+  /// No description provided for @channelExampleWarning.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estas são taxas de exemplo (out/2026), tiradas de guias para vendedores, e podem estar desatualizadas. Elas mudam com a categoria e o tipo de conta. Para usar a sua taxa real:\n1. Toque em \"Ver tarifas oficiais\" ou abra o seu painel de vendedor.\n2. Ache a comissão (%) e o valor fixo por venda da sua categoria.\n3. Corrija as faixas abaixo e toque em Salvar. O aviso some depois de salvar.'**
+  String get channelExampleWarning;
+
+  /// No description provided for @channelTiers.
+  ///
+  /// In pt, this message translates to:
+  /// **'Taxas por faixa de preço'**
+  String get channelTiers;
+
+  /// No description provided for @helpChannelTiers.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alguns marketplaces cobram taxas diferentes conforme o preço da peça. Ex.: até R\$ 79,99, 20% + R\$ 4,50; a partir de R\$ 80, 14% + R\$ 16. Se o canal cobra sempre igual, deixe uma faixa só. Cobranças extras entram na própria faixa: some ao percentual ou ao fixo.'**
+  String get helpChannelTiers;
+
+  /// No description provided for @channelTierFrom.
+  ///
+  /// In pt, this message translates to:
+  /// **'A partir de'**
+  String get channelTierFrom;
+
+  /// No description provided for @channelTierPercent.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comissão'**
+  String get channelTierPercent;
+
+  /// No description provided for @channelTierFixed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fixo por venda'**
+  String get channelTierFixed;
+
+  /// No description provided for @helpChannelPercent.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parte do preço de venda que o canal fica para si. Se você participa de algum programa com taxa extra em % sobre a venda, some aqui. Ex.: comissão de 14% + programa de 6% = 20.'**
+  String get helpChannelPercent;
+
+  /// No description provided for @helpChannelFixed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Valor cobrado a cada peça vendida, além da comissão. Se o marketplace cobra extras por item, some aqui. Ex.: fixo de R\$ 4,50 + adicional de R\$ 3,00 para conta CPF = 7,50.'**
+  String get helpChannelFixed;
+
+  /// No description provided for @channelOfficialFees.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver tarifas oficiais'**
+  String get channelOfficialFees;
+
+  /// No description provided for @channelInfoUrl.
+  ///
+  /// In pt, this message translates to:
+  /// **'Link das tarifas (opcional)'**
+  String get channelInfoUrl;
+
+  /// No description provided for @helpChannelInfoUrl.
+  ///
+  /// In pt, this message translates to:
+  /// **'Página onde o canal publica as taxas atuais. Fica salva aqui para você conferir quando elas mudarem.'**
+  String get helpChannelInfoUrl;
+
+  /// No description provided for @channelInfoUrlInvalid.
+  ///
+  /// In pt, this message translates to:
+  /// **'Use um link que comece com https://'**
+  String get channelInfoUrlInvalid;
+
+  /// No description provided for @openLinkFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível abrir o link'**
+  String get openLinkFailed;
+
+  /// No description provided for @calcExampleFees.
+  ///
+  /// In pt, this message translates to:
+  /// **'Taxas de exemplo neste canal. Toque para conferir.'**
+  String get calcExampleFees;
+
+  /// No description provided for @channelAddTier.
+  ///
+  /// In pt, this message translates to:
+  /// **'Adicionar faixa'**
+  String get channelAddTier;
+
+  /// No description provided for @channelTierSummary.
+  ///
+  /// In pt, this message translates to:
+  /// **'a partir de {price}: {fee}'**
+  String channelTierSummary(String price, String fee);
+
+  /// No description provided for @channelNoFees.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem taxas'**
+  String get channelNoFees;
+
+  /// No description provided for @channelExampleBadge.
+  ///
+  /// In pt, this message translates to:
+  /// **'taxas de exemplo'**
+  String get channelExampleBadge;
+
+  /// No description provided for @channelDuplicateMin.
+  ///
+  /// In pt, this message translates to:
+  /// **'Duas faixas com o mesmo valor inicial'**
+  String get channelDuplicateMin;
+
+  /// No description provided for @settingsDefaultChannel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Canal padrão'**
+  String get settingsDefaultChannel;
+
+  /// No description provided for @helpDefaultChannel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Canal que já vem escolhido na calculadora.'**
+  String get helpDefaultChannel;
+
+  /// No description provided for @obWelcomeTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vamos configurar o básico'**
+  String get obWelcomeTitle;
+
+  /// No description provided for @obStep.
+  ///
+  /// In pt, this message translates to:
+  /// **'Passo {n} de {total}'**
+  String obStep(int n, int total);
+
+  /// No description provided for @obCostsTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seus custos'**
+  String get obCostsTitle;
+
+  /// No description provided for @obCostsText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esses valores entram em todo cálculo. Se não souber algum, deixe como está e ajuste depois em Configurações.'**
+  String get obCostsText;
+
+  /// No description provided for @obFilamentTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seu primeiro filamento'**
+  String get obFilamentTitle;
+
+  /// No description provided for @obFilamentText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cadastre o filamento que você mais usa. Os outros podem ser cadastrados depois.'**
+  String get obFilamentText;
+
+  /// No description provided for @obPrinterTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sua impressora'**
+  String get obPrinterTitle;
+
+  /// No description provided for @obPrinterText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Com a impressora cadastrada, o preço inclui a energia e o desgaste da máquina. Se preferir, pule este passo.'**
+  String get obPrinterText;
+
+  /// No description provided for @obChannelTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Onde você vende'**
+  String get obChannelTitle;
+
+  /// No description provided for @obChannelText.
+  ///
+  /// In pt, this message translates to:
+  /// **'As taxas do canal entram no preço sugerido. Dá para trocar a cada cálculo.'**
+  String get obChannelText;
+
+  /// No description provided for @obSkip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pular'**
+  String get obSkip;
+
+  /// No description provided for @obFinish.
+  ///
+  /// In pt, this message translates to:
+  /// **'Começar a calcular'**
+  String get obFinish;
+
+  /// No description provided for @obPrinterNameHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ex.: Minha impressora'**
+  String get obPrinterNameHint;
+
+  /// No description provided for @historyExportCsv.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exportar planilha (CSV)'**
+  String get historyExportCsv;
+
+  /// No description provided for @historyExportEmpty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nada para exportar ainda'**
+  String get historyExportEmpty;
+
+  /// No description provided for @csvDate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data'**
+  String get csvDate;
+
+  /// No description provided for @csvName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Peça'**
+  String get csvName;
+
+  /// No description provided for @csvCustomer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cliente'**
+  String get csvCustomer;
+
+  /// No description provided for @csvStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Status'**
+  String get csvStatus;
+
+  /// No description provided for @csvQuantity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quantidade'**
+  String get csvQuantity;
+
+  /// No description provided for @csvChannel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Canal'**
+  String get csvChannel;
+
+  /// No description provided for @csvUnitPrice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preço unitário'**
+  String get csvUnitPrice;
+
+  /// No description provided for @csvUnitCost.
+  ///
+  /// In pt, this message translates to:
+  /// **'Custo unitário'**
+  String get csvUnitCost;
+
+  /// No description provided for @csvUnitProfit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Lucro unitário'**
+  String get csvUnitProfit;
+
+  /// No description provided for @csvTotalPrice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total'**
+  String get csvTotalPrice;
+
+  /// No description provided for @csvTotalProfit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Lucro total'**
+  String get csvTotalProfit;
+
+  /// No description provided for @csvFilamentGrams.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filamento total (g)'**
+  String get csvFilamentGrams;
+
+  /// No description provided for @csvFileName.
+  ///
+  /// In pt, this message translates to:
+  /// **'pecas'**
+  String get csvFileName;
+
+  /// No description provided for @archiveChannelConfirm.
+  ///
+  /// In pt, this message translates to:
+  /// **'Arquivar este canal? Peças já salvas continuam com as taxas usadas.'**
+  String get archiveChannelConfirm;
+
+  /// No description provided for @channelKeepOne.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mantenha pelo menos um canal.'**
+  String get channelKeepOne;
 }
 
 class _AppLocalizationsDelegate

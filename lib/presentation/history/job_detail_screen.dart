@@ -117,6 +117,7 @@ class JobDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               SegmentedButton<JobStatus>(
+                showSelectedIcon: false,
                 segments: [
                   for (final s in JobStatus.values)
                     ButtonSegment(value: s, label: Text(statusLabel(l, s))),
@@ -134,6 +135,8 @@ class JobDetailScreen extends ConsumerWidget {
                       row(l.unitCost, fmt.money(j.costCents)),
                       row(l.unitProfit, fmt.money(j.profitCents)),
                       row(l.jobQuantity, '${j.quantity}'),
+                      if (j.channelName case final channel?)
+                        row(l.csvChannel, channel),
                       const Divider(),
                       row(
                         l.totalLabel,

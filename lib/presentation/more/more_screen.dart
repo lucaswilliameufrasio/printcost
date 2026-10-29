@@ -38,8 +38,9 @@ class MoreScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l.navMore)),
       body: ListView(
         children: [
-          tile(Icons.circle_outlined, l.filaments, Routes.filaments),
+          tile(Icons.album_outlined, l.filaments, Routes.filaments),
           tile(Icons.print_outlined, l.printers, Routes.printers),
+          tile(Icons.storefront_outlined, l.channels, Routes.channels),
           for (final e in extra)
             ListTile(
               leading: Icon(e.icon),

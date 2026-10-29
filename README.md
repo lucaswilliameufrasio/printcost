@@ -10,13 +10,24 @@ conta, sem servidor — os dados ficam só no aparelho (SQLite). UI em portuguê
 
 ## Funcionalidades
 
+- **Configuração inicial** em 4 passos na primeira abertura: custos, primeiro
+  filamento, impressora (pode pular) e canal de venda.
 - **Cadastros**: filamentos (marca, tipo, cor, preço e peso do rolo, estoque,
   alerta de estoque baixo), impressoras (consumo, valor, vida útil,
-  manutenção/h) e configurações globais (kWh, hora de trabalho, taxas,
-  impostos, margem, embalagem, arredondamento, dados da loja).
-- **Calculadora** com vários filamentos por peça (AMS), detalhamento do custo
-  em gráfico, lucro líquido em R$ e %, arredondamento (,90 / ,99 / 0,50 /
-  inteiro) e erro claro quando margem + taxas + impostos ≥ 100%.
+  manutenção/h), canais de venda e configurações globais (kWh, hora de
+  trabalho, impostos, margem, embalagem, arredondamento, dados da loja).
+- **Canais de venda** (venda direta, Shopee, Mercado Livre...): comissão em %
+  mais valor fixo por venda, com **faixas por preço**. Shopee e Mercado Livre
+  vêm com taxas de exemplo (out/2026, de guias públicos para vendedores),
+  marcadas como "exemplo" até você conferir e salvar. A calculadora avisa
+  quando o canal escolhido ainda está com taxas de exemplo, e a tela do canal
+  explica como conferir, com o botão "Ver tarifas oficiais" (links em
+  `lib/data/db/seed_channels.dart`). Cada canal pode guardar o próprio link.
+- **Calculadora** com vários filamentos por peça (AMS), **várias peças na
+  mesma impressão**, detalhamento do custo em gráfico, lucro líquido em R$ e
+  %, arredondamento (,90 / ,99 / 0,50 / inteiro), preço com a mesma margem
+  nos outros canais, barra fixa com o preço e erro claro quando margem +
+  taxas + impostos ≥ 100%.
 - **Importar do arquivo (.3mf)**: lê peso por filamento e tempo de
   `Metadata/slice_info.config` (Bambu Studio / compatíveis). Funciona sem
   impressora.
@@ -24,6 +35,8 @@ conta, sem servidor — os dados ficam só no aparelho (SQLite). UI em portuguê
   entregue), custo e preço. "Marcar como impressa" desconta o estoque (com a
   % de desperdício) uma única vez e avisa quando o rolo está acabando.
 - **Orçamento em PDF** com logo e nome da loja, para compartilhar.
+- **Planilha (CSV)** do histórico para o contador ou controle de vendas
+  (separador `;` e vírgula decimal em pt-BR).
 - **Painel**: lucro por mês, faturamento, margem média, peças mais lucrativas,
   filamento mais usado.
 - **Backup/restauração** manual do banco (arquivo `.sqlite`).
@@ -53,6 +66,12 @@ python3 tool/gen_arb.py && flutter gen-l10n               # textos pt/en
 Os textos ficam em `tool/strings*.py` (uma tabela pt/en) e viram
 `lib/l10n/app_pt.arb` e `app_en.arb`.
 
+Ícone e tela de abertura (fontes em `assets/icon/`):
+
+```bash
+dart run flutter_launcher_icons && dart run flutter_native_splash:create
+```
+
 ### Gerar o APK
 
 ```bash
@@ -60,9 +79,35 @@ flutter build apk --release            # APK universal
 flutter build apk --release --split-per-abi   # APKs menores por arquitetura
 ```
 
-Saída: `build/app/outputs/flutter-apk/`. O build de release está assinado com
-a chave de debug (padrão do `flutter create`); para publicar na loja,
-configure sua própria chave em `android/app/build.gradle.kts`.
+Saída: `build/app/outputs/flutter-apk/`. Sem chave configurada, o build de
+release é assinado com a chave de debug. Para assinar com a sua, crie
+`android/key.properties` (fora do git):
+
+```properties
+storeFile=/caminho/para/chave.jks
+storePassword=...
+keyAlias=...
+keyPassword=...
+```
+
+### Versões de teste (CI)
+
+O workflow `.github/workflows/build.yml` roda `flutter analyze`, os testes e
+gera o APK em todo pull request e push.
+
+- **A cada push na `main`**, o pré-lançamento `dev` é atualizado. O link para
+  baixar é sempre o mesmo:
+  <https://github.com/lucaswilliameufrasio/printcost/releases/download/dev/printcost-dev.apk>.
+  Ele fica marcado como pré-lançamento, nunca como "Latest".
+- **Tags `v*`** (ex.: `v0.1.0`) publicam um pré-lançamento numerado com o APK.
+
+Os APKs do CI são assinados com uma **chave fixa só para testes**, guardada
+nos secrets do repositório (`ANDROID_TEST_KEYSTORE_BASE64`,
+`ANDROID_TEST_KEYSTORE_PASSWORD`, `ANDROID_TEST_KEY_ALIAS`). Com ela, uma
+versão nova instala por cima da anterior sem perder os dados. Ela não é a
+chave da Play Store: o app da loja terá outra assinatura, e por isso não
+instala por cima de uma versão de teste (é preciso desinstalar antes). Em
+forks, sem os secrets, o CI usa a chave de debug.
 
 ## Arquitetura
 
@@ -85,7 +130,9 @@ lib/
   componente é calculado de forma exata (`Ratio` com `BigInt`) e arredondado
   uma única vez, então o detalhamento sempre fecha com o total.
 - **Migrations**: `drift_schemas/` guarda o schema de cada versão;
-  `test/drift/` testa a migração v1→v2 (schema e integridade de dados).
+  `test/drift/` testa as migrações v1→v2→v3 (schema e dados). A v3 transforma
+  a antiga taxa única do marketplace em um canal e não mostra a configuração
+  inicial para quem já usava o app.
   Para uma nova versão: altere as tabelas, aumente `schemaVersion`, rode
   `dart run drift_dev make-migrations` e implemente o passo em `stepByStep`.
 
@@ -99,8 +146,18 @@ lib/
 | Mão de obra | minutos de pós-processamento × valor da hora / 60 |
 | Subtotal | material + energia + desgaste + mão de obra + embalagem |
 | Custo | subtotal × (1 + % de falha) |
-| Preço | custo / (1 − margem − taxa do marketplace − impostos) |
-| Lucro líquido | preço − custo − taxa − impostos |
+| Preço | (custo + fixo do canal) / (1 − margem − comissão do canal − impostos) |
+| Lucro líquido | preço − custo − comissão − fixo − impostos |
+
+- **Faixas de preço do canal**: o app calcula o preço em cada faixa, sobe
+  para o mínimo da faixa quando precisa, e fica com o menor preço que cabe
+  na faixa. Depois do arredondamento, as taxas são as da faixa do preço
+  final.
+- **Várias peças na mesma impressão**: gramas e tempo são da impressão
+  inteira; material, energia e desgaste são divididos entre as peças.
+  Pós-processamento, embalagem e taxas são por peça. O resultado é por peça,
+  com o total do lote. No histórico, o filamento fica guardado por peça, e o
+  estoque desconta `peso × quantidade`.
 
 ### Exemplo conferido à mão (está nos testes)
 

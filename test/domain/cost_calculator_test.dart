@@ -19,33 +19,40 @@ import 'package:printcost/domain/pricing/price_rounding.dart';
 /// * Arredondado para ,90 -> R$ 43,90
 ///   taxa = 43,90 × 12% = 5,268 -> 5,27; impostos = 43,90 × 6% = 2,634 -> 2,63
 ///   lucro = 43,90 − 22,51 − 5,27 − 2,63 = R$ 13,49 (30,73% do preço)
-PricingInput handCheckedInput({PriceRounding rounding = PriceRounding.none}) =>
-    PricingInput(
-      filaments: const [
-        FilamentUsage(
-          weightMg: 50000,
-          rollPriceCents: 12000,
-          rollWeightGrams: 1000,
-        ),
-      ],
-      printSeconds: 4 * 3600,
-      machine: const MachineProfile(
-        powerWatts: 150,
-        machineValueCents: 500000,
-        lifespanHours: 5000,
-        maintenancePerHourCents: 20,
-      ),
-      kwhPrice: 9000,
-      postProcessMinutes: 15,
-      laborHourCents: 3000,
-      packagingCents: 200,
-      wasteBp: 1000,
-      failureBp: 500,
-      marginBp: 3000,
-      marketplaceFeeBp: 1200,
-      taxBp: 600,
-      rounding: rounding,
-    );
+PricingInput handCheckedInput({
+  PriceRounding rounding = PriceRounding.none,
+  int fixedFeeCents = 0,
+  List<FeeTier>? tiers,
+  int unitsPerPrint = 1,
+}) => PricingInput(
+  filaments: const [
+    FilamentUsage(
+      weightMg: 50000,
+      rollPriceCents: 12000,
+      rollWeightGrams: 1000,
+    ),
+  ],
+  printSeconds: 4 * 3600,
+  machine: const MachineProfile(
+    powerWatts: 150,
+    machineValueCents: 500000,
+    lifespanHours: 5000,
+    maintenancePerHourCents: 20,
+  ),
+  kwhPrice: 9000,
+  postProcessMinutes: 15,
+  laborHourCents: 3000,
+  packagingCents: 200,
+  wasteBp: 1000,
+  failureBp: 500,
+  marginBp: 3000,
+  marketplaceFeeBp: 1200,
+  marketplaceFixedCents: fixedFeeCents,
+  feeTiers: tiers,
+  unitsPerPrint: unitsPerPrint,
+  taxBp: 600,
+  rounding: rounding,
+);
 
 CostBreakdown ok(PricingResult r) => switch (r) {
   PricingSuccess(:final breakdown) => breakdown,
@@ -186,7 +193,6 @@ void main() {
             wasteBp: 2000,
             failureBp: 0,
             marginBp: 0,
-            marketplaceFeeBp: 0,
             taxBp: 0,
           ),
         ),
@@ -213,7 +219,6 @@ void main() {
           wasteBp: 0,
           failureBp: 0,
           marginBp: 0,
-          marketplaceFeeBp: 0,
           taxBp: 0,
         ),
       );
@@ -261,12 +266,122 @@ void main() {
           wasteBp: 0,
           failureBp: 0,
           marginBp: 0,
-          marketplaceFeeBp: 0,
           taxBp: 0,
         ),
       ),
     );
     expect(b.machineWearCents, 100);
+  });
+
+  group('sales channel fees', () {
+    // Same part (cost R\$ 22,51), margin 30%, taxes 6%.
+    test('fixed fee per unit is added before dividing', () {
+      // (22,51 + 5,00) / (1 − 0,30 − 0,12 − 0,06) = 27,51 / 0,52 = 52,903…
+      // fee = 52,90 × 12% = 6,348 → 6,35 + 5,00 = 11,35
+      // taxes = 52,90 × 6% = 3,174 → 3,17
+      // profit = 52,90 − 22,51 − 11,35 − 3,17 = 15,87 (30,00%)
+      final b = ok(calculatePrice(handCheckedInput(fixedFeeCents: 500)));
+      expect(b.priceCents, 5290);
+      expect(b.marketplaceFeeCents, 1135);
+      expect(b.taxCents, 317);
+      expect(b.netProfitCents, 1587);
+      expect(b.netMarginBp, 3000);
+    });
+
+    const tiers = [
+      FeeTier(feeBp: 2000, fixedCents: 450),
+      FeeTier(minPriceCents: 8000, feeBp: 1400, fixedCents: 1600),
+    ];
+
+    test('uses the tier that matches the resulting price', () {
+      // Tier 1: (22,51 + 4,50) / 0,44 = 61,386 → 61,39 (< 80, valid)
+      // Tier 2: (22,51 + 16,00) / 0,50 = 77,02 → lifted to 80,00
+      // Lowest valid price: 61,39 in tier 1.
+      final b = ok(calculatePrice(handCheckedInput(tiers: tiers)));
+      expect(b.priceCents, 6139);
+      expect(b.appliedTier, tiers.first);
+      // fee = 61,39 × 20% = 12,278 → 12,28 + 4,50 = 16,78
+      expect(b.marketplaceFeeCents, 1678);
+    });
+
+    test('jumps to the next tier when the first one overflows it', () {
+      // A pricier part:
+      // packaging R\$ 12 → cost (21,44 + 10) × 1,05 = 33,012 → 33,01
+      // Tier 1: (33,01 + 4,50) / 0,44 = 85,25 (≥ 80, invalid)
+      // Tier 2: (33,01 + 16,00) / 0,50 = 98,02
+      final input = handCheckedInput(tiers: tiers);
+      final b = ok(
+        calculatePrice(
+          PricingInput(
+            filaments: input.filaments,
+            printSeconds: input.printSeconds,
+            machine: input.machine,
+            kwhPrice: input.kwhPrice,
+            postProcessMinutes: input.postProcessMinutes,
+            laborHourCents: input.laborHourCents,
+            packagingCents: 1200,
+            wasteBp: input.wasteBp,
+            failureBp: input.failureBp,
+            marginBp: input.marginBp,
+            taxBp: input.taxBp,
+            feeTiers: tiers,
+          ),
+        ),
+      );
+      expect(b.totalCostCents, 3301);
+      expect(b.priceCents, 9802);
+      expect(b.appliedTier, tiers.last);
+    });
+
+    test('rounding that crosses a tier uses the new tier fees', () {
+      const t = [
+        FeeTier(feeBp: 1200),
+        FeeTier(minPriceCents: 4350, feeBp: 1200, fixedCents: 100),
+      ];
+      // 43,29 is in tier 1; rounded to 43,90 it falls in tier 2.
+      final b = ok(
+        calculatePrice(
+          handCheckedInput(tiers: t, rounding: PriceRounding.endsIn90),
+        ),
+      );
+      expect(b.priceCents, 4390);
+      expect(b.appliedTier, t.last);
+      expect(b.marketplaceFeeCents, 527 + 100);
+    });
+
+    test('every tier over 100% is an error', () {
+      final r = calculatePrice(
+        handCheckedInput(
+          tiers: const [
+            FeeTier(feeBp: 7000),
+            FeeTier(minPriceCents: 10000, feeBp: 6500),
+          ],
+        ),
+      );
+      expect(r, isA<PricingFailure>());
+      final f = r as PricingFailure;
+      expect(f.error, PricingError.deductionsTooHigh);
+      expect(f.deductionsBp, 3000 + 6500 + 600);
+    });
+  });
+
+  group('several parts per print', () {
+    test('splits filament, energy and wear; keeps per-part costs', () {
+      // 4 parts: material 6,60 / 4 = 1,65; energy 0,54 / 4 = 0,135 → 0,14;
+      // wear 4,80 / 4 = 1,20; labor 7,50 and packaging 2,00 per part.
+      final b = ok(calculatePrice(handCheckedInput(unitsPerPrint: 4)));
+      expect(b.materialCents, 165);
+      expect(b.energyCents, 14);
+      expect(b.machineWearCents, 120);
+      expect(b.laborCents, 750);
+      expect(b.packagingCents, 200);
+      expect(b.subtotalCents, 1249);
+    });
+
+    test('zero parts is rejected', () {
+      final r = calculatePrice(handCheckedInput(unitsPerPrint: 0));
+      expect((r as PricingFailure).error, PricingError.invalidRollWeight);
+    });
   });
 
   group('applyPriceRounding', () {

@@ -187,7 +187,20 @@ class _MonthlyProfitChart extends StatelessWidget {
         titlesData: FlTitlesData(
           topTitles: const AxisTitles(),
           rightTitles: const AxisTitles(),
-          leftTitles: const AxisTitles(),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 56,
+              getTitlesWidget: (value, meta) {
+                // Axis geometry is in whole currency units; skip fractions.
+                if (value != value.roundToDouble()) return const SizedBox();
+                return SideTitleWidget(
+                  meta: meta,
+                  child: Text(fmt.moneyWhole(value.round()), style: muted),
+                );
+              },
+            ),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,

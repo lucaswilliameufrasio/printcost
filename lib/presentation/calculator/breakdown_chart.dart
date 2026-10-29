@@ -124,7 +124,8 @@ class BreakdownChart extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 12),
-        for (final p in parts)
+        // Zero rows only add noise; the slot colors stay fixed per category.
+        for (final p in visible)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(
@@ -139,6 +140,7 @@ class BreakdownChart extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Text(p.label)),
+                const SizedBox(width: 8),
                 Text(
                   total == 0
                       ? ''

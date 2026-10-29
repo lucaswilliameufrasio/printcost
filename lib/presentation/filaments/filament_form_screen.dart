@@ -50,8 +50,12 @@ const swatches = <int>[
 ];
 
 class FilamentFormScreen extends ConsumerStatefulWidget {
-  const FilamentFormScreen({this.id, super.key});
+  const FilamentFormScreen({this.id, this.backTo, super.key});
   final int? id;
+
+  /// Route to return to after saving (e.g. the calculator), instead of
+  /// popping back to the filament list.
+  final String? backTo;
 
   @override
   ConsumerState<FilamentFormScreen> createState() => _FilamentFormState();
@@ -89,7 +93,7 @@ class _FilamentFormState extends ConsumerState<FilamentFormScreen> {
     _material.text = f.material;
     _color.text = f.colorName;
     _argb = f.colorArgb;
-    _price.text = fmt.input(f.rollPriceCents, Scales.money);
+    _price.text = fmt.inputMoney(f.rollPriceCents);
     _rollWeight.text = '${f.rollWeightGrams}';
     _stock.text = fmt.input(f.stockMg, Scales.grams);
     _lowStock.text = fmt.input(f.lowStockAlertMg, Scales.grams);
@@ -129,7 +133,13 @@ class _FilamentFormState extends ConsumerState<FilamentFormScreen> {
       lowStockAlertMg: Value(fmt.parse(_lowStock.text, Scales.grams)!),
     );
     await ref.read(catalogRepositoryProvider).saveFilament(data);
-    if (mounted) context.pop();
+    if (!mounted) return;
+    final back = widget.backTo;
+    if (back != null && back.startsWith('/')) {
+      context.go(back);
+    } else {
+      context.pop();
+    }
   }
 
   Future<void> _archive() async {

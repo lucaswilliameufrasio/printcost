@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:printcost/app.dart';
 import 'package:printcost/data/db/app_database.dart';
+import 'package:printcost/domain/pricing/cost_calculator.dart';
 import 'package:printcost/presentation/providers.dart';
 
 /// Pumps the whole app on an in-memory database with the hand-checked
@@ -15,6 +16,7 @@ Future<AppDatabase> pumpTestApp(
   List<Override> overrides = const [],
   bool seed = true,
   String locale = 'pt',
+  bool onboardingDone = true,
   Future<void> Function(AppDatabase db)? extraSeed,
 }) async {
   tester.view.physicalSize = const Size(1080, 6000);
@@ -24,8 +26,20 @@ Future<AppDatabase> pumpTestApp(
   final db = AppDatabase(NativeDatabase.memory());
   await tester.runAsync(() async {
     await db.customSelect('SELECT 1').get(); // runs migrations + settings row
+    // The hand-checked example sells on a channel with a 12% commission.
+    final channel = await db
+        .into(db.salesChannels)
+        .insert(
+          SalesChannelsCompanion.insert(
+            name: 'Loja 12%',
+            tiers: const [FeeTier(feeBp: 1200)],
+            sortOrder: const Value(-1),
+          ),
+        );
     await (db.update(db.appSettings)).write(
       AppSettingsCompanion(
+        onboardingDone: Value(onboardingDone),
+        defaultChannelId: Value(channel),
         localeCode: Value(locale),
         kwhPrice: const Value(9000),
         laborHourCents: const Value(3000),
@@ -33,7 +47,6 @@ Future<AppDatabase> pumpTestApp(
         defaultWasteBp: const Value(1000),
         defaultFailureBp: const Value(500),
         defaultMarginBp: const Value(3000),
-        marketplaceFeeBp: const Value(1200),
         taxBp: const Value(600),
       ),
     );
@@ -82,6 +95,7 @@ void testApp(
   List<Override> overrides = const [],
   bool seed = true,
   String locale = 'pt',
+  bool onboardingDone = true,
   Future<void> Function(AppDatabase db)? extraSeed,
 }) {
   testWidgets(description, (tester) async {
@@ -90,6 +104,7 @@ void testApp(
       overrides: overrides,
       seed: seed,
       locale: locale,
+      onboardingDone: onboardingDone,
       extraSeed: extraSeed,
     );
     try {
