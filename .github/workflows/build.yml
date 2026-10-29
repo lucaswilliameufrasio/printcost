@@ -90,7 +90,7 @@ jobs:
             cp build/app/outputs/flutter-apk/app-release.apk dist/printcost-dev.apk
           fi
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: printcost-android
           path: dist/*.apk
@@ -109,7 +109,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       VERSION: ${{ needs.android.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: printcost-android
           path: dist
@@ -152,7 +152,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: printcost-android
           path: dist
