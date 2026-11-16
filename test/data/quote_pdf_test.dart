@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:printcost/data/pdf/quote_pdf.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('builds a PDF with accented labels', () async {
     final bytes = await buildQuotePdf(
       const QuoteData(
@@ -29,6 +31,7 @@ void main() {
     );
     expect(String.fromCharCodes(bytes.sublist(0, 5)), '%PDF-');
     expect(bytes.length, greaterThan(1000));
+    expect(String.fromCharCodes(bytes), contains('/FontFile2'));
   });
 
   test('total sums quantity × unit price', () {

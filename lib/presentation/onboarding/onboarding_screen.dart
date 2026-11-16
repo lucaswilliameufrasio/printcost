@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/format/scaled_decimal.dart';
 import '../../data/db/app_database.dart';

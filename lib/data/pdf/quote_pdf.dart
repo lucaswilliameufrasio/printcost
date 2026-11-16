@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -15,7 +16,7 @@ class QuoteItem {
   int get totalCents => unitPriceCents * quantity;
 }
 
-/// Already-translated labels, so the PDF code has no Flutter dependency.
+/// Already-translated labels for the quote PDF.
 class QuoteLabels {
   const QuoteLabels({
     required this.title,
@@ -62,13 +63,20 @@ Future<Uint8List> buildQuotePdf(
   QuoteData data,
   QuoteLabels labels,
   String Function(int cents) money,
-) {
+) async {
+  final regularFont = pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'),
+  );
+  final boldFont = pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'),
+  );
   final doc = pw.Document(title: labels.title, creator: 'PrintCost');
   const accent = PdfColor.fromInt(0xFF00796B);
   final logo = data.logo == null ? null : pw.MemoryImage(data.logo!);
 
   doc.addPage(
     pw.MultiPage(
+      theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(40),
       build: (context) => [

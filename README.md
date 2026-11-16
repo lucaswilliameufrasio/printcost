@@ -45,8 +45,30 @@ conta, sem servidor — os dados ficam só no aparelho (SQLite). UI em portuguê
 
 ## Como rodar
 
-Requisitos: Flutter **3.47.8** (stable; fixado em `mise.toml`) e Android SDK
-(ou Xcode para iOS).
+Requisitos: Flutter **3.50.0** (stable; fixado em `mise.toml`), JDK 21 e
+Android SDK para Android (ou Xcode para iOS).
+
+Com as ferramentas do `mise` instaladas e ativadas, use `make help` para ver
+os atalhos disponíveis. Por exemplo:
+
+```bash
+make get
+make devices
+make run                      # escolha o celular ou emulador no menu
+make check                    # análise, testes Flutter e ferramenta de assinatura
+make build-apk                # APK release local
+```
+
+Sem a ativação do `mise` no shell, execute os comandos como
+`mise exec -- make check`. `make format-check` verifica a formatação
+separadamente; `make format` altera os arquivos. Os builds são locais: a
+publicação das versões de teste continua sob responsabilidade do CI descrito
+abaixo. Os builds Android seguem a configuração de assinatura existente e,
+sem chave configurada, usam a chave de debug.
+
+`make run` e `make dev` mostram os dispositivos Android e iOS disponíveis,
+inclusive quando há apenas um. Para automação, use `make run DEVICE=<id>`;
+opções adicionais podem ser passadas com `ARGS='...'`.
 
 ```bash
 flutter pub get
