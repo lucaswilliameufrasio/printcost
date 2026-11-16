@@ -22,6 +22,40 @@ env:
   FLUTTER_VERSION: 3.50.0
 
 jobs:
+  versioned-artifact-check:
+    # Exercise the tagged APK transfer without creating a tag or release.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: 1.2.3-rc.1+4
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Create synthetic versioned APK
+        run: |
+          mkdir -p fixture
+          printf 'synthetic artifact for transfer validation\n' > "fixture/printcost-${VERSION}.apk"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: printcost-versioned-validation
+          path: fixture/*.apk
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/download-artifact@v8
+        env:
+          NODE_OPTIONS: --throw-deprecation
+        with:
+          name: printcost-versioned-validation
+          path: artifact-download
+          skip-decompress: true
+          digest-mismatch: error
+      - name: Verify versioned transfer
+        run: |
+          python3 tool/extract_artifact.py artifact-download dist "printcost-${VERSION}.apk"
+          cmp "fixture/printcost-${VERSION}.apk" "dist/printcost-${VERSION}.apk"
+
   check:
     runs-on: ubuntu-latest
     steps:
