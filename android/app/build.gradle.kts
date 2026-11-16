@@ -22,7 +22,7 @@ val releaseStoreFile = signingValue("storeFile", "PRINTCOST_KEYSTORE_PATH")
 
 android {
     namespace = "app.printcost.printcost"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
