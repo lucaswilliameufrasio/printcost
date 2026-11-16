@@ -44,6 +44,8 @@ jobs:
           test -z "$(gofmt -l .)"
           go vet ./...
           go test ./...
+      - name: Development tools
+        run: python3 -m unittest discover -s tool -p 'test_*.py'
 
   android:
     needs: check
@@ -132,10 +134,19 @@ jobs:
       GH_REPO: ${{ github.repository }}
       VERSION: ${{ needs.android.outputs.version }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v8
+        env:
+          NODE_OPTIONS: --throw-deprecation
         with:
           name: printcost-android
-          path: dist
+          path: artifact-download
+          skip-decompress: true
+          digest-mismatch: error
+      - name: Extract verified APK
+        run: python3 tool/extract_artifact.py artifact-download dist printcost-dev.apk
       - name: Update the dev pre-release
         run: |
           cat > notes.md <<EOF
@@ -177,10 +188,21 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v8
+        env:
+          NODE_OPTIONS: --throw-deprecation
         with:
           name: printcost-android
-          path: dist
+          path: artifact-download
+          skip-decompress: true
+          digest-mismatch: error
+      - name: Extract verified APK
+        env:
+          VERSION: ${{ needs.android.outputs.version }}
+        run: python3 tool/extract_artifact.py artifact-download dist "printcost-${VERSION}.apk"
       # Numbered versions stay pre-releases until there is a store release.
       - run: |
           gh release create "$GITHUB_REF_NAME" dist/*.apk --verify-tag \
