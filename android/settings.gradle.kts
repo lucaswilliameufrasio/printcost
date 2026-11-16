@@ -8,7 +8,14 @@ pluginManagement {
             flutterSdkPath
         }
 
-    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+    val versionFile = file("$flutterSdkPath/bin/cache/flutter.version.json")
+    require(versionFile.isFile) { "Run flutter --version to initialize the Flutter SDK" }
+    val version = groovy.json.JsonSlurper().parse(versionFile) as Map<*, *>
+    require(version["frameworkVersion"] == "3.50.0" &&
+        version["frameworkRevision"] == "ab2912035e160d9cad6306df307576da6128ebdb") {
+        "Patched Flutter Gradle plugin requires Flutter 3.50.0 (ab2912035e)"
+    }
+    includeBuild("../third_party/flutter_gradle")
 
     repositories {
         google()

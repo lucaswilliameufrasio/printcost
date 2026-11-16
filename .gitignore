@@ -31,6 +31,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/third_party/flutter_gradle/.gradle/
+/third_party/flutter_gradle/.kotlin/
+/third_party/flutter_gradle/build/
 /coverage/
 
 # Symbolication related

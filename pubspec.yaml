@@ -45,6 +45,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
 
+dependency_overrides:
+  android_file_picker:
+    path: third_party/android_file_picker
+
 flutter:
   uses-material-design: true
   generate: true
