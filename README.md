@@ -59,6 +59,19 @@ make check                    # análise, testes Flutter e ferramenta de assinat
 make build-apk                # APK release local
 ```
 
+### Proteção antes do push
+
+O hook versionado em `.githooks/pre-push` bloqueia o envio de arquivos comuns
+de credenciais/chaves de assinatura e de configurações Xcode com
+`DEVELOPMENT_TEAM`, explicando o motivo. Para ativá-lo neste clone:
+
+```bash
+git config --local core.hooksPath .githooks
+```
+
+O hook é uma proteção contra acidentes, não substitui revisão do diff nem
+detecção completa de segredos.
+
 Sem a ativação do `mise` no shell, execute os comandos como
 `mise exec -- make check`. `make format-check` verifica a formatação
 separadamente; `make format` altera os arquivos. Os builds são locais: a

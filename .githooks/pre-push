@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -u
+
+blocked=0
+zero_sha="0000000000000000000000000000000000000000"
+
+explain_block() {
+    local path="$1"
+    local reason="$2"
+
+    printf '\nPRE-PUSH BLOQUEADO: %s\n' "$path" >&2
+    printf 'Motivo: %s\n' "$reason" >&2
+    blocked=1
+}
+
+is_sensitive_path() {
+    local path="$1"
+    local filename="${path##*/}"
+
+    case "$filename" in
+        .env|.env.*|*.env|*.p12|*.p8|*.mobileprovision|*.provisionprofile|*.jks|*.keystore|*.pem|*.key)
+            return 0
+            ;;
+    esac
+
+    case "$path" in
+        android/key.properties|ios/*.p12|ios/*.mobileprovision|ios/*.provisionprofile)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+    if [[ "$local_sha" == "$zero_sha" ]]; then
+        continue
+    fi
+
+    if [[ "$remote_sha" != "$zero_sha" ]] && git cat-file -e "${remote_sha}^{commit}" 2>/dev/null; then
+        commit_list="$(git rev-list "${remote_sha}..${local_sha}")"
+    else
+        commit_list="$(git rev-list "$local_sha" --not --remotes)"
+    fi
+
+    if [[ -z "$commit_list" ]]; then
+        continue
+    fi
+
+    while IFS= read -r commit; do
+        while IFS= read -r path; do
+            if [[ -z "$path" ]]; then
+                continue
+            fi
+
+            if is_sensitive_path "$path"; then
+                explain_block "$path" "arquivo de credencial, chave privada ou perfil de assinatura; mantenha-o fora do repositório público."
+                continue
+            fi
+
+            if [[ "$path" == ios/Runner.xcodeproj/project.pbxproj || "$path" == *.xcconfig ]]; then
+                if git show "${commit}:${path}" 2>/dev/null | grep -Eq 'DEVELOPMENT_TEAM[[:space:]]*='; then
+                    explain_block "$path" "o Team ID de assinatura deve permanecer na configuração local, não no histórico público do projeto."
+                fi
+            fi
+
+            if git show "${commit}:${path}" 2>/dev/null | grep -aEq -- \
+                '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}'; then
+                explain_block "$path" "conteúdo parecido com chave privada ou token foi detectado; remova o segredo do commit e rotacione-o se já foi exposto."
+            fi
+        done < <(git diff-tree --root --no-commit-id --name-only -r "$commit")
+    done <<< "$commit_list"
+done
+
+if [[ "$blocked" -ne 0 ]]; then
+    printf '\nPush cancelado. Remova os dados sensíveis dos commits e tente novamente.\n' >&2
+    exit 1
+fi
+
+exit 0
