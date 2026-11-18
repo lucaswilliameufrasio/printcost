@@ -33,9 +33,17 @@ is_sensitive_path() {
     return 1
 }
 
-while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+validate_ref_update() {
+    local local_ref="$1"
+    local local_sha="$2"
+    local remote_ref="$3"
+    local remote_sha="$4"
+    local commit_list
+    local commit
+    local path
+
     if [[ "$local_sha" == "$zero_sha" ]]; then
-        continue
+        return
     fi
 
     if [[ "$remote_sha" != "$zero_sha" ]] && git cat-file -e "${remote_sha}^{commit}" 2>/dev/null; then
@@ -45,7 +53,7 @@ while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
     fi
 
     if [[ -z "$commit_list" ]]; then
-        continue
+        return
     fi
 
     while IFS= read -r commit; do
@@ -65,13 +73,26 @@ while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
                 fi
             fi
 
+            private_key_pattern='-----BEGIN (RSA |EC |OPENSSH )?'
+            private_key_pattern+='PRIVATE KEY-----'
             if git show "${commit}:${path}" 2>/dev/null | grep -aEq -- \
-                '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}'; then
+                "${private_key_pattern}|gh[pousr]_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}"; then
                 explain_block "$path" "conteúdo parecido com chave privada ou token foi detectado; remova o segredo do commit e rotacione-o se já foi exposto."
             fi
         done < <(git diff-tree --root --no-commit-id --name-only -r "$commit")
     done <<< "$commit_list"
-done
+}
+
+if [[ "$#" -eq 2 ]]; then
+    validate_ref_update "refs/heads/ci-guard" "$2" "refs/remotes/ci-base" "$1"
+elif [[ "$#" -eq 0 ]]; then
+    while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+        validate_ref_update "$local_ref" "$local_sha" "$remote_ref" "$remote_sha"
+    done
+else
+    printf 'Uso: %s [SHA-base SHA-cabeça]\n' "$0" >&2
+    exit 2
+fi
 
 if [[ "$blocked" -ne 0 ]]; then
     printf '\nPush cancelado. Remova os dados sensíveis dos commits e tente novamente.\n' >&2

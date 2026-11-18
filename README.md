@@ -63,14 +63,16 @@ make build-apk                # APK release local
 
 O hook versionado em `.githooks/pre-push` bloqueia o envio de arquivos comuns
 de credenciais/chaves de assinatura e de configurações Xcode com
-`DEVELOPMENT_TEAM`, explicando o motivo. Para ativá-lo neste clone:
+`DEVELOPMENT_TEAM`, explicando o motivo. Prepare este clone com um comando:
 
 ```bash
-git config --local core.hooksPath .githooks
+make setup
 ```
 
-O hook é uma proteção contra acidentes, não substitui revisão do diff nem
-detecção completa de segredos.
+O workflow do GitHub Actions executa a mesma validação em pull requests e antes
+de compilar/publicar builds, mesmo se o hook local não estiver instalado. O
+hook e o workflow são proteções contra acidentes: não substituem revisão do
+diff nem detecção completa de segredos.
 
 Sem a ativação do `mise` no shell, execute os comandos como
 `mise exec -- make check`. `make format-check` verifica a formatação

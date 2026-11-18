@@ -9,11 +9,12 @@ ARGS ?=
 
 .PHONY: help get doctor devices run dev analyze format format-check test test-coverage \
 	check signing-check generate generate-db generate-l10n icons build-apk \
-	build-apk-split build-aab build-ios build-ipa clean
+	build-apk-split build-aab build-ios build-ipa setup hooks-install clean
 
 help:
 	@echo "PrintCost - comandos disponíveis:"
 	@echo "  make get              Instala as dependências Flutter"
+	@echo "  make setup            Prepara dependências e ativa o hook Git"
 	@echo "  make doctor           Diagnostica o ambiente Flutter"
 	@echo "  make devices          Lista dispositivos disponíveis"
 	@echo "  make run              Escolhe um dispositivo e executa o app"
@@ -37,6 +38,16 @@ help:
 
 get:
 	$(FLUTTER) pub get
+
+setup: hooks-install get
+
+hooks-install:
+	@current_hooks_path="$$(git config --local --get core.hooksPath 2>/dev/null || true)"; \
+	if [ -n "$$current_hooks_path" ] && [ "$$current_hooks_path" != ".githooks" ]; then \
+		echo "Não alterei core.hooksPath: já existe outro caminho configurado ($$current_hooks_path)." >&2; \
+		exit 1; \
+	fi; \
+	git config --local core.hooksPath .githooks
 
 doctor:
 	$(FLUTTER) doctor

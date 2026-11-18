@@ -22,6 +22,21 @@ env:
   FLUTTER_VERSION: 3.50.0
 
 jobs:
+  push-guard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate pushed commit range
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '0000000000000000000000000000000000000000' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: ./.githooks/pre-push "$BASE_SHA" "$HEAD_SHA"
+
   versioned-artifact-check:
     # Exercise the tagged APK transfer without creating a tag or release.
     runs-on: ubuntu-latest
@@ -30,20 +45,20 @@ jobs:
     env:
       VERSION: 1.2.3-rc.1+4
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Create synthetic versioned APK
         run: |
           mkdir -p fixture
           printf 'synthetic artifact for transfer validation\n' > "fixture/printcost-${VERSION}.apk"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: printcost-versioned-validation
           path: fixture/*.apk
           if-no-files-found: error
           retention-days: 1
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         env:
           NODE_OPTIONS: --throw-deprecation
         with:
@@ -57,10 +72,11 @@ jobs:
           cmp "fixture/printcost-${VERSION}.apk" "dist/printcost-${VERSION}.apk"
 
   check:
+    needs: push-guard
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -68,7 +84,7 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: tool/signing-key/go.mod
           cache-dependency-path: tool/signing-key/go.sum
@@ -88,12 +104,12 @@ jobs:
       version: ${{ steps.version.outputs.name }}
       signed: ${{ steps.key.outputs.signed }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '21'
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -145,7 +161,7 @@ jobs:
             cp build/app/outputs/flutter-apk/app-release.apk dist/printcost-dev.apk
           fi
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: printcost-android
           path: dist/*.apk
@@ -168,10 +184,10 @@ jobs:
       GH_REPO: ${{ github.repository }}
       VERSION: ${{ needs.android.outputs.version }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         env:
           NODE_OPTIONS: --throw-deprecation
         with:
@@ -222,10 +238,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         env:
           NODE_OPTIONS: --throw-deprecation
         with:
