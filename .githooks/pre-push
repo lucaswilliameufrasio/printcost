@@ -83,14 +83,14 @@ validate_ref_update() {
     done <<< "$commit_list"
 }
 
-if [[ "$#" -eq 2 ]]; then
-    validate_ref_update "refs/heads/ci-guard" "$2" "refs/remotes/ci-base" "$1"
-elif [[ "$#" -eq 0 ]]; then
+if [[ "$#" -eq 3 && "$1" == "--range" ]]; then
+    validate_ref_update "refs/heads/ci-guard" "$3" "refs/remotes/ci-base" "$2"
+elif [[ "$#" -eq 0 || "$#" -eq 2 ]]; then
     while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
         validate_ref_update "$local_ref" "$local_sha" "$remote_ref" "$remote_sha"
     done
 else
-    printf 'Uso: %s [SHA-base SHA-cabeça]\n' "$0" >&2
+    printf 'Uso: %s [--range SHA-base SHA-cabeça]\n' "$0" >&2
     exit 2
 fi
 

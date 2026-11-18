@@ -35,7 +35,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '0000000000000000000000000000000000000000' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: ./.githooks/pre-push "$BASE_SHA" "$HEAD_SHA"
+        run: ./.githooks/pre-push --range "$BASE_SHA" "$HEAD_SHA"
 
   versioned-artifact-check:
     # Exercise the tagged APK transfer without creating a tag or release.
