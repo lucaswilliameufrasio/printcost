@@ -69,10 +69,13 @@ de credenciais/chaves de assinatura e de configurações Xcode com
 make setup
 ```
 
-O workflow do GitHub Actions executa a mesma validação em pull requests e antes
-de compilar/publicar builds, mesmo se o hook local não estiver instalado. O
-hook e o workflow são proteções contra acidentes: não substituem revisão do
-diff nem detecção completa de segredos.
+O workflow `Push safety guard` do GitHub Actions executa a mesma validação em
+todos os pushes e pull requests, mesmo se o hook local não estiver instalado.
+No fluxo de `main`, o build e a publicação também dependem dessa validação. O
+workflow roda depois do push; para bloquear merges antes de entrarem em `main`,
+configure esse check como obrigatório nas regras da branch. O hook e o workflow
+são proteções contra acidentes: não substituem revisão do diff nem detecção
+completa de segredos.
 
 Sem a ativação do `mise` no shell, execute os comandos como
 `mise exec -- make check`. `make format-check` verifica a formatação
